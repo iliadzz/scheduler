@@ -68,12 +68,6 @@ export function populateRoleColorPalette() {
         });
     }
     
-    // Close popup if clicking elsewhere
-    document.addEventListener('click', (e) => {
-        if (popup && !popup.contains(e.target) && e.target !== roleColorPreview) {
-            popup.style.display = 'none';
-        }
-    });
 }
 
 /**

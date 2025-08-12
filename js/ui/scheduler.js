@@ -291,12 +291,70 @@ export function renderWeeklySchedule() {
         (selectedDepartmentIds.includes('all') || selectedDepartmentIds.includes(user.departmentId))
     );
     
-    const departmentsToRender = selectedDepartmentIds.includes('all')
-        ? departments
-        : departments.filter(d => selectedDepartmentIds.includes(d.id));
-    
     if (coverageContainer) {
-        // ... (coverage rendering logic would go here)
+        const summaryLabelDiv = document.createElement('div');
+        summaryLabelDiv.className = 'header-coverage-summary-label';
+        summaryLabelDiv.innerHTML = `<span data-lang-key="headerCoverageSummary">${getTranslatedString('headerCoverageSummary')}</span>`;
+        coverageContainer.appendChild(summaryLabelDiv);
+
+        weekDates.forEach(date => {
+            const dateStr = formatDate(date);
+            const dayOfWeek = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'][date.getDay()];
+            const daySettings = restaurantSettings[dayOfWeek] || {};
+            const coverageSettings = restaurantSettings.minCoverage?._default?.[dayOfWeek] || {};
+
+            let coverage = { open: 0, lunch: 0, dinner: 0, close: 0 };
+
+            visibleUsers.forEach(user => {
+                const dayData = scheduleAssignments[`${user.id}-${dateStr}`];
+                if (dayData && dayData.shifts) {
+                    dayData.shifts.forEach(shift => {
+                        if (shift.type === 'shift') {
+                            const tpl = shift.isCustom ? null : shiftTemplates.find(st => st.id === shift.shiftTemplateId);
+                            const start = shift.isCustom ? shift.customStart : tpl?.start;
+                            const end = shift.isCustom ? shift.customEnd : tpl?.end;
+
+                            if (start && end) {
+                                if (calculateOverlap(start, end, daySettings.open, daySettings.lunchStart) > 0) coverage.open++;
+                                if (calculateOverlap(start, end, daySettings.lunchStart, daySettings.lunchEnd) >= (minMealCoverageDurationSelect.value || 60)) coverage.lunch++;
+                                if (calculateOverlap(start, end, daySettings.dinnerStart, daySettings.dinnerEnd) >= (minMealCoverageDurationSelect.value || 60)) coverage.dinner++;
+                                if (calculateOverlap(start, end, daySettings.dinnerEnd, daySettings.close) > 0) coverage.close++;
+                            }
+                        }
+                    });
+                }
+            });
+
+            const summaryCell = document.createElement('div');
+            summaryCell.className = 'header-coverage-summary';
+            summaryCell.classList.toggle('is-event-day', isEventOnDate(date).length > 0);
+
+            const periods = [
+                { key: 'open', label: 'lblOpen', minKey: 'minOp' },
+                { key: 'lunch', label: 'lblLunch', minKey: 'minAl' },
+                { key: 'dinner', label: 'lblDinner', minKey: 'minCe' },
+                { key: 'close', label: 'lblClose', minKey: 'minCl' }
+            ];
+
+            periods.forEach(p => {
+                const min = coverageSettings[p.minKey] || 0;
+                let statusClass = 'coverage-success';
+                if (coverage[p.key] < min) statusClass = 'coverage-danger';
+                if (coverage[p.key] > min) statusClass = 'coverage-over';
+                if (min === 0) statusClass = '';
+
+                // --- THIS IS THE FIX ---
+                // Create the text for the minimum number separately to simplify the main HTML string.
+                const minDisplay = min > 0 ? `/${min}` : '';
+
+                summaryCell.innerHTML += `
+                    <span class="coverage-item ${statusClass}">
+                        ${getTranslatedString(p.label)} ${coverage[p.key]}${minDisplay}
+                    </span>`;
+            });
+
+            coverageContainer.appendChild(summaryCell);
+        });
     }
 
     visibleUsers.forEach(user => {

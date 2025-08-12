@@ -159,6 +159,23 @@ window.__startApp = function() {
     if (initialTabButton) {
         initialTabButton.click();
     }
+    window.addEventListener('click', (event) => {
+    // This part handles closing modals, leave it as is
+    if (event.target.classList.contains('modal')) {
+        event.target.style.display = 'none';
+    }
+
+    // This part handles the department filter, leave it as is
+    if (dom.departmentFilterMultiselect && !dom.departmentFilterMultiselect.contains(event.target)) {
+        dom.departmentCheckboxesContainer.classList.remove('visible');
+        dom.departmentFilterButton.classList.remove('expanded');
+    }
+
+    // ADD THIS LOGIC: This now handles the role color picker
+    const roleColorPopup = document.getElementById('role-color-popup');
+    if (roleColorPopup && !roleColorPopup.contains(event.target) && event.target !== dom.roleColorPreview) {
+        roleColorPopup.style.display = 'none';
+    }
 };
 
 
