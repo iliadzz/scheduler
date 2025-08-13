@@ -1,5 +1,3 @@
-// Isolated Modal Logic: The complex logic for the "Assign Shift" modal has been extracted from modals.js and placed into its own dedicated file, js/ui/assign-shift-modal.js
-// js/ui/assign-shift-modal.js
 // js/ui/assign-shift-modal.js
 
 import { roles, shiftTemplates, departments, users, saveShiftTemplates } from '../state.js';
@@ -8,12 +6,19 @@ import { getTranslatedString } from '../i18n.js';
 import { populateTimeSelectsForElements, generateId, formatTimeToHHMM, calculateShiftDuration, formatTimeForDisplay } from '../utils.js';
 import { HistoryManager, ModifyAssignmentCommand } from '../features/history.js';
 
-// ... (rest of the file is unchanged, only imports might need correction if they were wrong)
-// In this case, the original paths were correct relative to this file's location.
-// No changes are needed for this file, but providing it for completeness.
-
 let currentAssignMode = 'template';
 let editingAssignmentDetails = null;
+
+function populateDepartmentsForModal() {
+    if (!dom.assignModalDepartmentFilter) return;
+    dom.assignModalDepartmentFilter.innerHTML = `<option value="all">${getTranslatedString('optAllDepts')}</option>`;
+    departments.forEach(dept => {
+        const option = document.createElement('option');
+        option.value = dept.id;
+        option.textContent = dept.name;
+        dom.assignModalDepartmentFilter.appendChild(option);
+    });
+}
 
 function populateRolesForModal(departmentId) {
     if (!dom.assignModalRoleSelect) return;
@@ -30,19 +35,26 @@ function populateRolesForModal(departmentId) {
     });
 }
 
-function populateTemplatesForModal(filterDeptId) {
-    if (!dom.assignModalShiftTemplateSelect) return;
+function populateTemplatesForModal(filterDeptId, dateStr) {
+    if (!dom.assignModalShiftTemplateSelect || !dateStr) return;
+
+    const dayIndex = new Date(dateStr + 'T00:00:00').getDay();
+    const dayKeys = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+    const targetDay = dayKeys[dayIndex];
+
     dom.assignModalShiftTemplateSelect.innerHTML = `<option value="">--${getTranslatedString('optSelectShift') || 'Select Shift'}--</option>`;
+
     const relevantTemplates = shiftTemplates.filter(st => {
-        if (!filterDeptId || filterDeptId === 'all') return true;
-        return st.departmentId === filterDeptId;
+        const deptMatch = (filterDeptId === 'all') || (st.departmentIds || []).includes(filterDeptId);
+        const dayMatch = !st.availableDays || st.availableDays.length === 0 || st.availableDays.includes(targetDay);
+        return deptMatch && dayMatch;
     });
 
     relevantTemplates.forEach(st => {
-        const dept = departments.find(d => d.id === st.departmentId);
-        const deptAbbr = dept ? `[${dept.abbreviation}]` : '[GEN]';
+        const mainDept = departments.find(d => (st.departmentIds || []).includes(d.id));
+        const deptAbbr = mainDept ? `[${mainDept.abbreviation}]` : '[GEN]';
         const duration = calculateShiftDuration(st.start, st.end).toFixed(1);
-        const displayText = `${deptAbbr} ${st.name}: ${formatTimeForDisplay(st.start)} - ${formatTimeForDisplay(st.end)} [${duration}hrs]`;
+        const displayText = `${st.start} - ${st.end} | ${st.name} [${duration}]`;
         const option = document.createElement('option');
         option.value = st.id;
         option.textContent = displayText;
@@ -50,7 +62,9 @@ function populateTemplatesForModal(filterDeptId) {
     });
 }
 
-function resetCustomTemplateForm() {
+// ... the rest of the file remains the same ...
+
+export function resetCustomTemplateForm() {
     if (dom.saveAsTemplateCheckbox) dom.saveAsTemplateCheckbox.checked = false;
     if (dom.newTemplateFieldsDiv) dom.newTemplateFieldsDiv.style.display = 'none';
     if (dom.newTemplateNameInput) dom.newTemplateNameInput.value = '';
@@ -72,15 +86,18 @@ export function openModalForEdit(assignment, userId, dateStr) {
     } else if (assignment.shiftTemplateId) {
         const tpl = shiftTemplates.find(st => st.id === assignment.shiftTemplateId);
         if (tpl) {
-            shiftDeptId = tpl.departmentId;
+            // Use the first department ID for filtering purposes
+            shiftDeptId = tpl.departmentIds ? tpl.departmentIds[0] : null; 
             startTime = tpl.start;
             endTime = tpl.end;
         }
     }
 
+    populateDepartmentsForModal(); 
+
     dom.assignModalDepartmentFilter.value = shiftDeptId || 'all';
     populateRolesForModal(dom.assignModalDepartmentFilter.value);
-    populateTemplatesForModal(dom.assignModalDepartmentFilter.value);
+    populateTemplatesForModal(dom.assignModalDepartmentFilter.value, dateStr);
 
     if (startTime) {
         const [startH, startM] = startTime.split(':');
@@ -121,9 +138,11 @@ export function openAssignShiftModalForNewOrCustom(userId, dateStr) {
     const user = users.find(u => u.id === userId);
     const userDeptId = user ? user.departmentId : null;
 
+    populateDepartmentsForModal(); 
+
     dom.assignModalDepartmentFilter.value = userDeptId !== null ? userDeptId : 'all';
     populateRolesForModal(dom.assignModalDepartmentFilter.value);
-    populateTemplatesForModal(dom.assignModalDepartmentFilter.value);
+    populateTemplatesForModal(dom.assignModalDepartmentFilter.value, dateStr);
 
     if (dom.saveCustomAsTemplateSection) dom.saveCustomAsTemplateSection.style.display = 'block';
     resetCustomTemplateForm();
@@ -178,7 +197,7 @@ export function handleAssignShift() {
                 const newTemplate = {
                     id: generateId('shift'),
                     name: dom.newTemplateNameInput.value.trim(),
-                    departmentId: dom.assignModalDepartmentFilter.value,
+                    departmentIds: [dom.assignModalDepartmentFilter.value], // Use an array
                     start: newAssignment.customStart,
                     end: newAssignment.customEnd,
                 };
@@ -216,7 +235,8 @@ export function initAssignShiftModalListeners() {
 
     dom.assignModalDepartmentFilter.addEventListener('change', () => {
         const selectedDeptId = dom.assignModalDepartmentFilter.value;
-        populateTemplatesForModal(selectedDeptId);
+        const dateStr = dom.assignModalDateInput.value;
+        populateTemplatesForModal(selectedDeptId, dateStr);
         populateRolesForModal(selectedDeptId);
     });
 

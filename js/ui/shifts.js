@@ -4,6 +4,7 @@ import { shiftTemplates, departments, saveShiftTemplates } from '../state.js';
 import * as dom from '../dom.js';
 import { getTranslatedString } from '../i18n.js';
 import { createItemActionButtons, calculateShiftDuration, formatTimeForDisplay, formatTimeToHHMM, generateId } from '../utils.js';
+// makeListSortable is no longer used here, but we keep the import in case it's used elsewhere.
 import { makeListSortable } from '../features/list-dnd.js';
 
 const SHIFTS_FILTER_KEY = 'shiftsDepartmentFilterState';
@@ -156,11 +157,17 @@ export function handleSaveShiftTemplate() {
         return;
     }
 
-    const templateData = { name, departmentId, start, end };
+    // New templates are available on all days by default. Edited via pills.
+    const availableDays = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+    const templateData = { name, departmentId, start, end, availableDays };
 
     if (editingId) {
         const templateIndex = shiftTemplates.findIndex(st => st.id === editingId);
-        if (templateIndex > -1) shiftTemplates[templateIndex] = { ...shiftTemplates[templateIndex], ...templateData };
+        if (templateIndex > -1) {
+            // Preserve existing availableDays when editing, unless it's a new property
+            const existingDays = shiftTemplates[templateIndex].availableDays;
+            shiftTemplates[templateIndex] = { ...shiftTemplates[templateIndex], ...templateData, availableDays: existingDays || availableDays };
+        }
     } else {
         shiftTemplates.push({ id: generateId('shift'), ...templateData });
     }
@@ -172,37 +179,96 @@ export function handleSaveShiftTemplate() {
 export function renderShiftTemplates() {
     if (!dom.shiftTemplateContainer) return;
     dom.shiftTemplateContainer.innerHTML = '';
+
     const selectedDeptIds = getSelectedShiftDepartmentIds();
-    const templatesToDisplay = shiftTemplates.filter(st => 
+    let templatesToDisplay = shiftTemplates.filter(st =>
         (selectedDeptIds === null) ? true : selectedDeptIds.includes(st.departmentId)
     );
+
+    // Sort templates by start time, then end time
+    templatesToDisplay.sort((a, b) => {
+        if (a.start < b.start) return -1;
+        if (a.start > b.start) return 1;
+        if (a.end < b.end) return -1;
+        if (a.end > b.end) return 1;
+        return 0;
+    });
+
     const groupedTemplates = templatesToDisplay.reduce((acc, template) => {
         const deptId = template.departmentId || 'general';
         if (!acc[deptId]) {
-            acc[deptId] = { name: departments.find(d => d.id === deptId)?.name || getTranslatedString('optGeneral'), templates: [] };
+            acc[deptId] = {
+                name: departments.find(d => d.id === deptId)?.name || getTranslatedString('optGeneral'),
+                templates: []
+            };
         }
         acc[deptId].templates.push(template);
         return acc;
     }, {});
     
+    const daysOrder = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+    const dayLabels = { mon: 'M', tue: 'T', wed: 'W', thu: 'T', fri: 'F', sat: 'S', sun: 'S' };
+
     Object.values(groupedTemplates).forEach(group => {
         const groupWrapper = document.createElement('div');
         groupWrapper.className = 'department-group';
         groupWrapper.innerHTML = `<h3>${group.name}</h3>`;
-        const grid = document.createElement('div');
-        grid.className = 'template-grid';
+        
+        const list = document.createElement('ul'); // Use a list for semantics
+        list.className = 'template-list';
+
         group.templates.forEach(st => {
-            const itemDiv = document.createElement('div');
-            itemDiv.className = 'template-item draggable-item';
-            itemDiv.draggable = true;
-            itemDiv.dataset.itemId = st.id;
+            const itemLi = document.createElement('li');
+            itemLi.className = 'template-item'; // No longer draggable
+            itemLi.dataset.itemId = st.id;
+
             const duration = calculateShiftDuration(st.start, st.end).toFixed(1);
-            itemDiv.innerHTML = `<span class="template-name-span">${st.name}: ${formatTimeForDisplay(st.start)} - ${formatTimeForDisplay(st.end)} [${duration}hrs]</span>`;
-            itemDiv.prepend(createItemActionButtons(() => populateShiftTemplateFormForEdit(st), () => deleteShiftTemplate(st.id)));
-            grid.appendChild(itemDiv);
+            
+            let contentHTML = `
+                <div class="template-info">
+                    <span class="template-time">${formatTimeForDisplay(st.start)} - ${formatTimeForDisplay(st.end)}</span>
+                    <span class="template-name-span">${st.name}</span>
+                    <span class="template-duration">[${duration}]</span>
+                </div>
+            `;
+            itemLi.innerHTML = contentHTML;
+
+            const dayPillsContainer = document.createElement('div');
+            dayPillsContainer.className = 'day-pills-container';
+            daysOrder.forEach(day => {
+                const pill = document.createElement('span');
+                pill.className = 'day-pill';
+                pill.dataset.day = day;
+                pill.textContent = dayLabels[day];
+                if ((st.availableDays || []).includes(day)) {
+                    pill.classList.add('active');
+                }
+                pill.addEventListener('click', () => {
+                    const template = shiftTemplates.find(t => t.id === st.id);
+                    if (!template) return;
+                    if (!template.availableDays) {
+                        template.availableDays = [...daysOrder];
+                    }
+                    const dayIndex = template.availableDays.indexOf(day);
+                    if (dayIndex > -1) {
+                        template.availableDays.splice(dayIndex, 1);
+                    } else {
+                        template.availableDays.push(day);
+                    }
+                    saveShiftTemplates();
+                    renderShiftTemplates(); // Re-render to show the change
+                });
+                dayPillsContainer.appendChild(pill);
+            });
+            
+            const actions = createItemActionButtons(() => populateShiftTemplateFormForEdit(st), () => deleteShiftTemplate(st.id));
+            
+            itemLi.appendChild(dayPillsContainer);
+            itemLi.appendChild(actions);
+            list.appendChild(itemLi);
         });
-        groupWrapper.appendChild(grid);
+        
+        groupWrapper.appendChild(list);
         dom.shiftTemplateContainer.appendChild(groupWrapper);
-        makeListSortable(grid, shiftTemplates, saveShiftTemplates, renderShiftTemplates);
     });
 }
