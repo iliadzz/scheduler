@@ -6,7 +6,6 @@ import { getTranslatedString } from '../i18n.js';
 import { createItemActionButtons, calculateShiftDuration, formatTimeForDisplay, formatTimeToHHMM, generateId } from '../utils.js';
 import { makeListSortable } from '../features/list-dnd.js';
 
-// ===== Shifts Department Multiselect =====
 const SHIFTS_FILTER_KEY = 'shiftsDepartmentFilterState';
 
 export function ensureShiftDeptMultiselect() {
@@ -99,17 +98,84 @@ function updateShiftDeptLabel() {
   }
 }
 
-// ... (Rest of the shifts.js file remains the same, but the renderShiftTemplates function is updated)
+export function populateShiftTemplateFormForEdit(template) {
+    dom.editingShiftTemplateIdInput.value = template.id;
+    dom.shiftTemplateNameInput.value = template.name;
+    dom.shiftTemplateDepartmentSelect.value = template.departmentId || "";
+    const [startH, startM] = template.start.split(':');
+    const [endH, endM] = template.end.split(':');
+    dom.shiftTemplateStartHourSelect.value = startH;
+    dom.shiftTemplateStartMinuteSelect.value = startM;
+    dom.shiftTemplateEndHourSelect.value = endH;
+    dom.shiftTemplateEndMinuteSelect.value = endM;
+    dom.addShiftTemplateBtn.textContent = 'Save Changes';
+    dom.cancelEditShiftTemplateBtn.style.display = 'inline-block';
+}
+
+export function resetShiftTemplateForm() {
+    dom.editingShiftTemplateIdInput.value = '';
+    dom.shiftTemplateNameInput.value = '';
+    dom.shiftTemplateDepartmentSelect.value = "";
+    dom.shiftTemplateStartHourSelect.value = "09";
+    dom.shiftTemplateStartMinuteSelect.value = "00";
+    dom.shiftTemplateEndHourSelect.value = "17";
+    dom.shiftTemplateEndMinuteSelect.value = "00";
+    dom.addShiftTemplateBtn.textContent = getTranslatedString('btnAddShiftTemplate');
+    dom.cancelEditShiftTemplateBtn.style.display = 'none';
+}
+
+export function deleteShiftTemplate(stId) {
+    if (!confirm(`Are you sure you want to delete this shift template?`)) return;
+    const updatedTemplates = shiftTemplates.filter(st => st.id !== stId);
+    shiftTemplates.length = 0;
+    Array.prototype.push.apply(shiftTemplates, updatedTemplates);
+    saveShiftTemplates();
+    renderShiftTemplates();
+    if (dom.editingShiftTemplateIdInput.value === stId) {
+        resetShiftTemplateForm();
+    }
+}
+
+export function handleSaveShiftTemplate() {
+    const name = dom.shiftTemplateNameInput.value.trim();
+    const departmentId = dom.shiftTemplateDepartmentSelect.value;
+    const start = formatTimeToHHMM(dom.shiftTemplateStartHourSelect.value, dom.shiftTemplateStartMinuteSelect.value);
+    const end = formatTimeToHHMM(dom.shiftTemplateEndHourSelect.value, dom.shiftTemplateEndMinuteSelect.value);
+    const editingId = dom.editingShiftTemplateIdInput.value;
+
+    if (!departmentId) {
+        alert('Please select a department for the shift template.');
+        return;
+    }
+    if (!name || !start || !end) {
+        alert('Please fill in all shift template details.');
+        return;
+    }
+    if (start === end) {
+        alert("Shift start and end times cannot be the same.");
+        return;
+    }
+
+    const templateData = { name, departmentId, start, end };
+
+    if (editingId) {
+        const templateIndex = shiftTemplates.findIndex(st => st.id === editingId);
+        if (templateIndex > -1) shiftTemplates[templateIndex] = { ...shiftTemplates[templateIndex], ...templateData };
+    } else {
+        shiftTemplates.push({ id: generateId('shift'), ...templateData });
+    }
+    saveShiftTemplates();
+    renderShiftTemplates();
+    resetShiftTemplateForm();
+}
 
 export function renderShiftTemplates() {
     if (!dom.shiftTemplateContainer) return;
     dom.shiftTemplateContainer.innerHTML = '';
-
     const selectedDeptIds = getSelectedShiftDepartmentIds();
     const templatesToDisplay = shiftTemplates.filter(st => 
         (selectedDeptIds === null) ? true : selectedDeptIds.includes(st.departmentId)
     );
-
     const groupedTemplates = templatesToDisplay.reduce((acc, template) => {
         const deptId = template.departmentId || 'general';
         if (!acc[deptId]) {
@@ -130,11 +196,8 @@ export function renderShiftTemplates() {
             itemDiv.className = 'template-item draggable-item';
             itemDiv.draggable = true;
             itemDiv.dataset.itemId = st.id;
-
             const duration = calculateShiftDuration(st.start, st.end).toFixed(1);
-            itemDiv.innerHTML = `
-                <span class="template-name-span">${st.name}: ${formatTimeForDisplay(st.start)} - ${formatTimeForDisplay(st.end)} [${duration}hrs]</span>
-            `;
+            itemDiv.innerHTML = `<span class="template-name-span">${st.name}: ${formatTimeForDisplay(st.start)} - ${formatTimeForDisplay(st.end)} [${duration}hrs]</span>`;
             itemDiv.prepend(createItemActionButtons(() => populateShiftTemplateFormForEdit(st), () => deleteShiftTemplate(st.id)));
             grid.appendChild(itemDiv);
         });

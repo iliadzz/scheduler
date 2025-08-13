@@ -43,6 +43,120 @@ import {
 import { getTranslatedString } from '../i18n.js';
 import { createItemActionButtons, generateId } from '../utils.js';
 
+// ---- Employees Department Multiselect (mirrors Scheduler) ----
+const EMP_FILTER_KEY = 'employeesDepartmentFilterState';
+
+export function ensureEmployeeDeptMultiselect() {
+  if (document.getElementById('employee-dept-multiselect')) return;
+
+  const wrapper = document.createElement('div');
+  wrapper.className = 'multiselect';
+  wrapper.id = 'employee-dept-multiselect';
+
+  const button = document.createElement('div');
+  button.className = 'select-box';
+  button.id = 'employee-dept-button';
+  button.innerHTML = `<span id="employee-dept-text">All Departments</span><i class="fas fa-chevron-down"></i>`;
+
+  const checks = document.createElement('div');
+  checks.className = 'checkboxes-container';
+  checks.id = 'employee-dept-checkboxes';
+
+  wrapper.appendChild(button);
+  wrapper.appendChild(checks);
+
+  if (employeeListFilter && employeeListFilter.parentElement) {
+    employeeListFilter.style.display = 'none';
+    employeeListFilter.parentElement.insertBefore(wrapper, employeeListFilter.nextSibling);
+  }
+
+  button.addEventListener('click', () => {
+    checks.classList.toggle('visible');
+    button.classList.toggle('expanded');
+  });
+
+  window.addEventListener('click', (ev) => {
+    if (!wrapper.contains(ev.target)) {
+      checks.classList.remove('visible');
+      button.classList.remove('expanded');
+    }
+  });
+}
+
+export function populateEmployeeDeptCheckboxes() {
+  const checks = document.getElementById('employee-dept-checkboxes');
+  const labelSpan = document.getElementById('employee-dept-text');
+  if (!checks || !labelSpan) return;
+
+  checks.innerHTML = '';
+
+  const savedJSON = localStorage.getItem(EMP_FILTER_KEY);
+  const saved = savedJSON ? JSON.parse(savedJSON) : null;
+
+  const isChecked = (value, def = true) => {
+    if (!saved) return def;
+    const rec = saved.find(s => s.value === value);
+    return rec ? !!rec.checked : def;
+  };
+
+  const allChecked = isChecked('all', true);
+  const allLabel = document.createElement('label');
+  allLabel.innerHTML = `<input type="checkbox" value="all" ${allChecked ? 'checked' : ''}> <strong>All Departments</strong>`;
+  checks.appendChild(allLabel);
+
+  departments.forEach(d => {
+    const lab = document.createElement('label');
+    const checked = isChecked(d.id, true);
+    lab.innerHTML = `<input type="checkbox" value="${d.id}" ${checked ? 'checked' : ''}> ${d.name}`;
+    checks.appendChild(lab);
+  });
+
+  const onChange = (e) => {
+    const all = checks.querySelector('input[value="all"]');
+    const boxes = [...checks.querySelectorAll('input[type="checkbox"]')];
+
+    if (e && e.target.value === 'all') {
+      boxes.forEach(cb => cb.checked = all.checked);
+    } else {
+      const allOthersChecked = boxes.slice(1).every(cb => cb.checked);
+      all.checked = allOthersChecked;
+    }
+
+    const state = boxes.map(cb => ({ value: cb.value, checked: cb.checked }));
+    localStorage.setItem(EMP_FILTER_KEY, JSON.stringify(state));
+    updateEmployeeDeptLabel();
+    renderEmployees();
+  };
+
+  checks.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.addEventListener('change', onChange));
+  updateEmployeeDeptLabel();
+}
+
+function getSelectedEmployeeDepartmentIds() {
+  const savedJSON = localStorage.getItem(EMP_FILTER_KEY);
+  if (!savedJSON) return null;
+  const saved = JSON.parse(savedJSON);
+  const selected = saved.filter(s => s.value !== 'all' && s.checked).map(s => s.value);
+  const all = saved.find(s => s.value === 'all');
+  if (all && all.checked) return null;
+  return selected;
+}
+
+function updateEmployeeDeptLabel() {
+  const labelSpan = document.getElementById('employee-dept-text');
+  if (!labelSpan) return;
+
+  const selected = getSelectedEmployeeDepartmentIds();
+  if (selected === null) {
+    labelSpan.textContent = 'All Departments';
+  } else if (selected.length === 0) {
+    labelSpan.textContent = 'None selected';
+  } else {
+    const names = departments.filter(d => selected.includes(d.id)).map(d => d.name);
+    labelSpan.textContent = names.length > 3 ? `${names.length} selected` : names.join(', ');
+  }
+}
+
 async function toggleEmployeeVisibility(userId) {
     const userIndex = users.findIndex(u => u.id === userId);
     if (userIndex > -1) {
@@ -202,15 +316,18 @@ export function populateTerminationReasons() {
 }
 
 export function renderEmployees() {
-    if (!employeeListUl || !employeeListFilter) return;
+    if (!employeeListUl) return;
     employeeListUl.innerHTML = '';
-    const filterValue = employeeListFilter.value;
+    
     const showInactive = showInactiveEmployeesCheckbox.checked;
+    const selectedDeptIds = getSelectedEmployeeDepartmentIds();
+    
     const employeesToDisplay = users.filter(user => {
         const statusMatch = showInactive ? true : (user.status === 'Active' || user.status === undefined);
-        const departmentMatch = filterValue === 'all' || user.departmentId === filterValue;
-        return statusMatch && departmentMatch;
+        const deptMatch = (selectedDeptIds === null) ? true : selectedDeptIds.includes(user.departmentId);
+        return statusMatch && deptMatch;
     });
+
     employeesToDisplay.forEach(user => {
         const li = document.createElement('li');
         const nameSpan = document.createElement('span');
