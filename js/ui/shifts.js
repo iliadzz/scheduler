@@ -4,10 +4,27 @@ import { shiftTemplates, departments, saveShiftTemplates } from '../state.js';
 import * as dom from '../dom.js';
 import { getTranslatedString } from '../i18n.js';
 import { createItemActionButtons, calculateShiftDuration, formatTimeForDisplay, formatTimeToHHMM, generateId } from '../utils.js';
-// makeListSortable is no longer used here, but we keep the import in case it's used elsewhere.
 import { makeListSortable } from '../features/list-dnd.js';
 
 const SHIFTS_FILTER_KEY = 'shiftsDepartmentFilterState';
+
+// --- Data Migration ---
+// This small block ensures that older shift templates with a single `departmentId`
+// are automatically updated to the new `departmentIds` array format.
+let migrationNeeded = shiftTemplates.some(st => st.departmentId && !st.departmentIds);
+if (migrationNeeded) {
+    shiftTemplates.forEach(st => {
+        if (st.departmentId && !st.departmentIds) {
+            st.departmentIds = [st.departmentId];
+            delete st.departmentId; // Clean up old property
+        } else if (!st.departmentIds) {
+            st.departmentIds = []; // Ensure all templates have the array
+        }
+    });
+    saveShiftTemplates();
+    console.log("Shift templates data migrated to use departmentIds array.");
+}
+
 
 export function ensureShiftDeptMultiselect() {
   if (document.getElementById('shift-dept-multiselect')) return;
@@ -102,7 +119,8 @@ function updateShiftDeptLabel() {
 export function populateShiftTemplateFormForEdit(template) {
     dom.editingShiftTemplateIdInput.value = template.id;
     dom.shiftTemplateNameInput.value = template.name;
-    dom.shiftTemplateDepartmentSelect.value = template.departmentId || "";
+    // Department dropdown is gone, so this line is removed.
+    // dom.shiftTemplateDepartmentSelect.value = template.departmentId || ""; 
     const [startH, startM] = template.start.split(':');
     const [endH, endM] = template.end.split(':');
     dom.shiftTemplateStartHourSelect.value = startH;
@@ -116,7 +134,8 @@ export function populateShiftTemplateFormForEdit(template) {
 export function resetShiftTemplateForm() {
     dom.editingShiftTemplateIdInput.value = '';
     dom.shiftTemplateNameInput.value = '';
-    dom.shiftTemplateDepartmentSelect.value = "";
+    // Department dropdown is gone, so this line is removed.
+    // dom.shiftTemplateDepartmentSelect.value = "";
     dom.shiftTemplateStartHourSelect.value = "09";
     dom.shiftTemplateStartMinuteSelect.value = "00";
     dom.shiftTemplateEndHourSelect.value = "17";
@@ -139,15 +158,10 @@ export function deleteShiftTemplate(stId) {
 
 export function handleSaveShiftTemplate() {
     const name = dom.shiftTemplateNameInput.value.trim();
-    const departmentId = dom.shiftTemplateDepartmentSelect.value;
     const start = formatTimeToHHMM(dom.shiftTemplateStartHourSelect.value, dom.shiftTemplateStartMinuteSelect.value);
     const end = formatTimeToHHMM(dom.shiftTemplateEndHourSelect.value, dom.shiftTemplateEndMinuteSelect.value);
     const editingId = dom.editingShiftTemplateIdInput.value;
 
-    if (!departmentId) {
-        alert('Please select a department for the shift template.');
-        return;
-    }
     if (!name || !start || !end) {
         alert('Please fill in all shift template details.');
         return;
@@ -157,16 +171,26 @@ export function handleSaveShiftTemplate() {
         return;
     }
 
-    // New templates are available on all days by default. Edited via pills.
-    const availableDays = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
-    const templateData = { name, departmentId, start, end, availableDays };
+    const templateData = { 
+        name, 
+        start, 
+        end,
+        // When creating a new shift, default it to the first department if it exists.
+        // It can then be edited via pills.
+        departmentIds: departments.length > 0 ? [departments[0].id] : [],
+        availableDays: ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']
+    };
 
     if (editingId) {
         const templateIndex = shiftTemplates.findIndex(st => st.id === editingId);
         if (templateIndex > -1) {
-            // Preserve existing availableDays when editing, unless it's a new property
-            const existingDays = shiftTemplates[templateIndex].availableDays;
-            shiftTemplates[templateIndex] = { ...shiftTemplates[templateIndex], ...templateData, availableDays: existingDays || availableDays };
+            const existingTemplate = shiftTemplates[templateIndex];
+            shiftTemplates[templateIndex] = { 
+                ...existingTemplate, 
+                name: templateData.name,
+                start: templateData.start,
+                end: templateData.end
+            };
         }
     } else {
         shiftTemplates.push({ id: generateId('shift'), ...templateData });
@@ -181,11 +205,12 @@ export function renderShiftTemplates() {
     dom.shiftTemplateContainer.innerHTML = '';
 
     const selectedDeptIds = getSelectedShiftDepartmentIds();
-    let templatesToDisplay = shiftTemplates.filter(st =>
-        (selectedDeptIds === null) ? true : selectedDeptIds.includes(st.departmentId)
-    );
+    let templatesToDisplay = shiftTemplates.filter(st => {
+        if (selectedDeptIds === null) return true; // 'All' is selected
+        // Shift is displayed if it has at least one department in common with the filter
+        return st.departmentIds.some(id => selectedDeptIds.includes(id));
+    });
 
-    // Sort templates by start time, then end time
     templatesToDisplay.sort((a, b) => {
         if (a.start < b.start) return -1;
         if (a.start > b.start) return 1;
@@ -195,14 +220,15 @@ export function renderShiftTemplates() {
     });
 
     const groupedTemplates = templatesToDisplay.reduce((acc, template) => {
-        const deptId = template.departmentId || 'general';
-        if (!acc[deptId]) {
-            acc[deptId] = {
-                name: departments.find(d => d.id === deptId)?.name || getTranslatedString('optGeneral'),
+        // For display purposes, we'll group by the first department in the list.
+        const mainDeptId = (template.departmentIds && template.departmentIds.length > 0) ? template.departmentIds[0] : 'general';
+        if (!acc[mainDeptId]) {
+            acc[mainDeptId] = {
+                name: departments.find(d => d.id === mainDeptId)?.name || getTranslatedString('optGeneral'),
                 templates: []
             };
         }
-        acc[deptId].templates.push(template);
+        acc[mainDeptId].templates.push(template);
         return acc;
     }, {});
     
@@ -214,24 +240,52 @@ export function renderShiftTemplates() {
         groupWrapper.className = 'department-group';
         groupWrapper.innerHTML = `<h3>${group.name}</h3>`;
         
-        const list = document.createElement('ul'); // Use a list for semantics
+        const list = document.createElement('ul');
         list.className = 'template-list';
 
         group.templates.forEach(st => {
             const itemLi = document.createElement('li');
-            itemLi.className = 'template-item'; // No longer draggable
+            itemLi.className = 'template-item';
             itemLi.dataset.itemId = st.id;
 
             const duration = calculateShiftDuration(st.start, st.end).toFixed(1);
             
-            let contentHTML = `
-                <div class="template-info">
-                    <span class="template-time">${formatTimeForDisplay(st.start)} - ${formatTimeForDisplay(st.end)}</span>
-                    <span class="template-name-span">${st.name}</span>
-                    <span class="template-duration">[${duration}]</span>
-                </div>
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'template-info';
+            contentDiv.innerHTML = `
+                <span class="template-time">${formatTimeForDisplay(st.start)} - ${formatTimeForDisplay(st.end)}</span>
+                <span class="template-name-span">${st.name}</span>
+                <span class="template-duration">[${duration}]</span>
             `;
-            itemLi.innerHTML = contentHTML;
+
+            const deptPillsContainer = document.createElement('div');
+            deptPillsContainer.className = 'department-pills-container';
+            departments.forEach(dept => {
+                const pill = document.createElement('span');
+                pill.className = 'dept-pill';
+                pill.dataset.deptId = dept.id;
+                pill.textContent = dept.abbreviation;
+                if ((st.departmentIds || []).includes(dept.id)) {
+                    pill.classList.add('active');
+                }
+                pill.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const template = shiftTemplates.find(t => t.id === st.id);
+                    if (!template) return;
+                    
+                    const deptId = e.target.dataset.deptId;
+                    const index = (template.departmentIds || []).indexOf(deptId);
+
+                    if (index > -1) {
+                        template.departmentIds.splice(index, 1);
+                    } else {
+                        template.departmentIds.push(deptId);
+                    }
+                    saveShiftTemplates();
+                    renderShiftTemplates();
+                });
+                deptPillsContainer.appendChild(pill);
+            });
 
             const dayPillsContainer = document.createElement('div');
             dayPillsContainer.className = 'day-pills-container';
@@ -243,26 +297,30 @@ export function renderShiftTemplates() {
                 if ((st.availableDays || []).includes(day)) {
                     pill.classList.add('active');
                 }
-                pill.addEventListener('click', () => {
+                pill.addEventListener('click', (e) => {
+                    e.stopPropagation();
                     const template = shiftTemplates.find(t => t.id === st.id);
                     if (!template) return;
-                    if (!template.availableDays) {
-                        template.availableDays = [...daysOrder];
-                    }
-                    const dayIndex = template.availableDays.indexOf(day);
-                    if (dayIndex > -1) {
-                        template.availableDays.splice(dayIndex, 1);
+                    if (!template.availableDays) template.availableDays = [...daysOrder];
+                    
+                    const dayValue = e.target.dataset.day;
+                    const index = template.availableDays.indexOf(dayValue);
+
+                    if (index > -1) {
+                        template.availableDays.splice(index, 1);
                     } else {
-                        template.availableDays.push(day);
+                        template.availableDays.push(dayValue);
                     }
                     saveShiftTemplates();
-                    renderShiftTemplates(); // Re-render to show the change
+                    renderShiftTemplates();
                 });
                 dayPillsContainer.appendChild(pill);
             });
             
             const actions = createItemActionButtons(() => populateShiftTemplateFormForEdit(st), () => deleteShiftTemplate(st.id));
             
+            itemLi.appendChild(contentDiv);
+            itemLi.appendChild(deptPillsContainer);
             itemLi.appendChild(dayPillsContainer);
             itemLi.appendChild(actions);
             list.appendChild(itemLi);
