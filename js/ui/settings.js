@@ -1,5 +1,3 @@
-// This module is for the "Settings" tab. It will manage saving restaurant hours, setting minimum coverage requirements, and handling the data backup and restore functionality.
-
 // js/ui/settings.js
 
 // 1. Import Dependencies
@@ -69,6 +67,13 @@ function populateMinCoverageDepartmentSelect() {
 function renderMinCoverageForDepartment(deptId) {
     if (!minCoverageGridContainer) return;
     minCoverageGridContainer.innerHTML = '';
+
+    // --- THIS IS THE FIX ---
+    // Ensure the minCoverage structure exists before trying to access it.
+    if (!restaurantSettings.minCoverage) {
+        restaurantSettings.minCoverage = { _default: {} };
+    }
+    // --- END FIX ---
 
     const days = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
     const dayNames = { mon: 'dayMon', tue: 'dayTue', wed: 'dayWed', thu: 'dayThu', fri: 'dayFri', sat: 'daySat', sun: 'daySun' };
@@ -235,8 +240,6 @@ export function handleRestoreFile(event) {
     reader.onload = function(e) {
         try {
             const backupData = JSON.parse(e.target.result);
-            // Here you would add logic to confirm the restore with the user
-            // and then overwrite the state variables and re-save/re-render everything.
             alert(`File "${file.name}" is ready to be restored. (Restore logic not fully implemented in this step).`);
             console.log("Parsed restore data:", backupData);
         } catch (error) {

@@ -141,7 +141,11 @@ export const translations = {
         confirmDeleteDept: 'Are you sure you want to delete this department? This will also remove it from any users, roles, or shifts assigned to it.',
         headerCoverageSummary: "Coverage Summary",
         lblOpen: "Open:", lblLunch: "Lunch:", lblDinner: "Dinner:", lblClose: "Close:",
-        lblMinOp: "Min Opening:", lblMinLunch: "Min Lunch:", lblMinDinner: "Min Dinner:", lblMinClose: "Min Closing:",
+        // --- THIS IS THE FIX ---
+        lblMinOp: "MIN OP:", 
+        lblMinLunch: "MIN AL:", 
+        lblMinDinner: "MIN CE:", 
+        lblMinClose: "MIN CL:",
         optDefault: "Default",
         modalClearWeekTitle: "Confirm Schedule Deletion",
         btnClearShiftsOnly: "Clear Shifts Only",

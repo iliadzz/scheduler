@@ -1067,19 +1067,21 @@ ul li .item-actions button {
     background-color: #f8f9fa;
     font-size: 0.8em;
     padding: 4px 8px;
-    border-bottom: 2px solid #ccc;
     min-height: 30px;
     display: flex;
-    flex-direction: row; /* Changed from column */
-    flex-wrap: wrap;      /* Added for responsiveness */
-    align-items: center;  /* Vertically center items */
-    justify-content: center; /* Horizontally center items */
-    gap: 4px 8px;         /* Adjusted gap for horizontal layout */
+    flex-direction: row; 
+    flex-wrap: wrap;     
+    align-items: center; 
+    justify-content: center; 
+    gap: 4px 8px;        
+    border-bottom: 1px solid #ccc;
+    border-right: 1px solid #ccc;
 }
 .header-coverage-summary-label {
     font-weight: bold;
     color: #2c3e50;
-    justify-content: center;
+    justify-content: left;
+    padding-left: 8px;
 }
 .coverage-item {
     font-weight: bold;
@@ -1094,6 +1096,10 @@ ul li .item-actions button {
 .coverage-over {
     color: #3498db;
 }
+.coverage-row-deficient {
+    background-color: #fbeeee !important;
+}
+
 
 /* --- Settings Grids Styles --- */
 .settings-section {
@@ -1112,9 +1118,10 @@ ul li .item-actions button {
     font-size: 0.95em;
 }
 
+/* --- THIS IS THE FIX --- */
 .hours-grid, .min-coverage-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
     gap: 20px;
 }
 .day-settings-card {
@@ -1132,26 +1139,30 @@ ul li .item-actions button {
 .day-settings-card .form-group {
     flex-direction: row;
     justify-content: space-between;
+    align-items: center;
     margin-bottom: 10px;
 }
 .day-settings-card .form-group label {
-    min-width: 80px;
+    min-width: auto; 
     font-weight: normal;
+    flex-shrink: 0; 
 }
 .day-settings-card .form-group select {
     padding: 6px;
-    min-width: 150px;
+    min-width: auto;
+    width: 75px; 
     font-size: 0.9em;
 }
 .min-coverage-grid .form-group {
     flex-direction: row;
     justify-content: space-between;
+    align-items: center;
 }
 .min-coverage-grid label {
     font-weight: normal;
 }
 .min-coverage-grid input[type="number"] {
-    max-width: 70px;
+    width: 50px; 
     padding: 6px;
 }
 
@@ -1179,7 +1190,6 @@ ul li .item-actions button {
 
 .template-grid {
     display: grid;
-    /* Creates responsive columns that are at least 320px wide */
     grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
     gap: 15px;
 }
@@ -1190,7 +1200,7 @@ ul li .item-actions button {
     padding: 10px 15px;
     border-radius: 4px;
     display: flex;
-    justify-content: flex-start; /* Align items to the start */
+    justify-content: flex-start; 
     align-items: center;
 }
 
@@ -1198,33 +1208,31 @@ ul li .item-actions button {
     cursor: move;
 }
 
-/* Style for the new icon-only buttons */
 .template-item .item-actions button {
     background: transparent;
     border: none;
-    color: #95a5a6; /* Neutral grey color */
+    color: #95a5a6; 
     padding: 4px;
-    margin-right: 8px; /* Space between icons and text */
-    font-size: 1.1em;  /* Slightly larger icon */
+    margin-right: 8px; 
+    font-size: 1.1em;  
     line-height: 1;
     cursor: pointer;
     transition: color 0.2s;
 }
 
 .template-item .item-actions button:hover {
-    color: #2c3e50; /* Darker on hover */
+    color: #2c3e50; 
 }
 
 .template-item .item-actions button.danger-btn:hover {
-    color: #c0392b; /* Red on hover for delete */
+    color: #c0392b; 
 }
 
 .template-item .template-name-span {
-    flex-grow: 1; /* Make the name take up the remaining space */
+    flex-grow: 1; 
 }
 
 /* === Appended Login Styles (from V2) === */
-/* --- Login Page Styles --- */
 #login-container {
     display: flex;
     align-items: center;
@@ -1287,52 +1295,41 @@ ul li .item-actions button {
     font-size: 1.1em;
 }
 
-/* Auth gate defaults */
 .app-container { display: none; }
 #login-container { display: flex; }
 
-/* --- New Employee Modal Layout (Add to end of Style.css) --- */
-
-/* 1. Make the main grid scrollable */
 #employee-form-modal .employee-form-grid {
-    max-height: 65vh; /* Sets max height to 65% of the viewport height */
-    overflow-y: auto;   /* Adds a scrollbar ONLY if content is taller than max-height */
-    padding-right: 15px; /* Adds space so the scrollbar doesn't overlap content */
-    display: block;     /* Override the grid display for a simpler top-to-bottom flow of sections */
+    max-height: 65vh; 
+    overflow-y: auto;  
+    padding-right: 15px;
+    display: block;    
 }
 
-/* 2. Style the sections inside the modal (Personal, Address, etc.) */
 #employee-form-modal .form-column {
     margin-bottom: 25px;
 }
 
-/* 3. Create a responsive grid for the input fields within each section */
 .form-section-grid {
     display: grid;
-    /* This will create as many 250px columns as can fit, making it responsive */
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 15px 20px; /* Defines the space between rows and columns */
+    gap: 15px 20px; 
 }
 
-/* 4. Adjust the individual form groups to fit within the new grid */
 #employee-form-modal .form-group {
-    /* Revert the previous column layout */
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    gap: 5px; /* Space between label and input */
-    margin-bottom: 0; /* The grid gap now handles spacing */
+    gap: 5px; 
+    margin-bottom: 0; 
 }
 
 #employee-form-modal .form-group label,
 #employee-form-modal .form-group input,
 #employee-form-modal .form-group select,
 #employee-form-modal .phone-input-group {
-    width: 100%; /* Ensure they fill their grid cell */
+    width: 100%; 
 }
-/* Add to the end of Style.css */
 
-/* Visually hide an element, but leave it for screen readers */
 .sr-only {
     position: absolute;
     width: 1px;
@@ -1345,20 +1342,16 @@ ul li .item-actions button {
     border-width: 0;
 }
 
-/* Container for the hour/minute dropdowns */
 .time-input-group {
     display: flex;
     align-items: center;
 }
 
-/* Visual label for the time input group */
 .time-input-label {
     font-weight: bold;
     margin-right: 5px;
 }
-/* --- New Role Color Palette Styles --- */
 
-/* A helper class for better vertical form alignment */
 .form-group-column {
     display: flex;
     flex-direction: column;
@@ -1367,9 +1360,9 @@ ul li .item-actions button {
 
 #roles-tab .color-palette {
     display: grid;
-    grid-template-columns: repeat(8, 1fr); /* Creates 8 columns for colors */
+    grid-template-columns: repeat(8, 1fr); 
     gap: 6px;
-    max-width: 280px; /* Limit the width of the palette */
+    max-width: 280px; 
 }
 
 #roles-tab .color-swatch {
@@ -1386,10 +1379,10 @@ ul li .item-actions button {
 }
 
 #roles-tab .color-swatch.selected {
-    border-color: #2c3e50; /* Dark border for selected color */
+    border-color: #2c3e50; 
     box-shadow: 0 0 5px rgba(0,0,0,0.4);
 }
-/* --- New Role Color Picker Popup Styles --- */
+
 .color-picker-wrapper {
     position: relative;
 }

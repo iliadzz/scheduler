@@ -3,27 +3,16 @@
 
 // js/features/history.js
 
-// --- 1. Import Dependencies ---
 import { scheduleAssignments, saveScheduleAssignments } from '../state.js';
 import { generateId } from '../utils.js';
 import { renderWeeklySchedule } from '../ui/scheduler.js';
 
-// DOM elements for the buttons
 const undoBtn = document.getElementById('undo-btn');
 const redoBtn = document.getElementById('redo-btn');
 
-
-// --- 2. Module's Private State ---
 let historyStack = [];
 let historyPointer = -1;
 
-
-// --- 3. Command Class Definitions ---
-// These objects represent a single, reversible action.
-
-/**
- * Command for adding or modifying a shift assignment.
- */
 export function ModifyAssignmentCommand(userId, dateStr, newAssignment, oldAssignment = null) {
     this.userId = userId;
     this.dateStr = dateStr;
@@ -61,9 +50,6 @@ export function ModifyAssignmentCommand(userId, dateStr, newAssignment, oldAssig
     };
 }
 
-/**
- * Command for deleting a shift assignment.
- */
 export function DeleteAssignmentCommand(userId, dateStr, assignmentId) {
     this.userId = userId;
     this.dateStr = dateStr;
@@ -93,12 +79,8 @@ export function DeleteAssignmentCommand(userId, dateStr, assignmentId) {
     };
 }
 
-/**
- * Command for a drag-and-drop shift operation.
- */
 export function DragDropCommand(dragDetails) {
     this.assignment = { ...dragDetails, assignmentId: dragDetails.newAssignmentId || generateId('assign') };
-    // Clean up properties that are only needed for the drag operation itself
     delete this.assignment.originalUserId;
     delete this.assignment.originalDateStr;
     delete this.assignment.isCopyOperation;
@@ -146,16 +128,8 @@ export function DragDropCommand(dragDetails) {
     };
 }
 
-
-// --- 4. The History Manager Object ---
-
 export const HistoryManager = {
-    /**
-     * Executes a command and adds it to the history stack.
-     * @param {object} command - An instance of a command class (e.g., ModifyAssignmentCommand).
-     */
     doAction: function(command) {
-        // If we've undone actions, new actions should clear the "redo" stack.
         if (historyPointer < historyStack.length - 1) {
             historyStack = historyStack.slice(0, historyPointer + 1);
         }
@@ -164,10 +138,6 @@ export const HistoryManager = {
         command.execute();
         this.updateUndoRedoButtons();
     },
-
-    /**
-     * Undoes the last action.
-     */
     undo: function() {
         if (historyPointer >= 0) {
             const command = historyStack[historyPointer];
@@ -176,10 +146,6 @@ export const HistoryManager = {
             this.updateUndoRedoButtons();
         }
     },
-
-    /**
-     * Redoes the last undone action.
-     */
     redo: function() {
         if (historyPointer < historyStack.length - 1) {
             historyPointer++;
@@ -188,20 +154,12 @@ export const HistoryManager = {
             this.updateUndoRedoButtons();
         }
     },
-
-    /**
-     * Updates the enabled/disabled state of the undo/redo buttons.
-     */
     updateUndoRedoButtons: function() {
         if (undoBtn && redoBtn) {
             undoBtn.disabled = historyPointer < 0;
             redoBtn.disabled = historyPointer >= historyStack.length - 1;
         }
     },
-
-    /**
-     * Clears the entire history stack.
-     */
     clear: function() {
         historyStack = [];
         historyPointer = -1;
