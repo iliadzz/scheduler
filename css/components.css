@@ -1,0 +1,210 @@
+/* css/components.css */
+/* Styles for reusable UI elements: forms, modals, lists, pills, etc. */
+
+/* --- Forms & Inputs --- */
+.form-group {
+    margin-bottom: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+}
+.form-group label {
+    font-weight: bold;
+    margin-right: 5px;
+    min-width: 100px;
+}
+.form-group input[type="text"],
+.form-group input[type="date"],
+.form-group input[type="number"],
+.form-group input[type="tel"],
+.form-group input[type="email"],
+.form-group select {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 0.95em;
+    min-width: 180px;
+    flex-grow: 1;
+}
+.time-input-group {
+    display: flex;
+    align-items: center;
+}
+.time-input-label {
+    font-weight: bold;
+    margin-right: 5px;
+}
+
+/* --- Lists --- */
+ul li {
+    background: #f9f9f9;
+    border: 1px solid #e0e0e0;
+    padding: 10px 15px;
+    margin-bottom: 8px;
+    border-radius: 4px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.item-actions button {
+    margin-left: 8px;
+    padding: 5px 8px;
+    font-size: 0.8em;
+}
+
+/* --- Modals --- */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 100;
+    left: 0; top: 0;
+    width: 100%; height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.5);
+}
+.modal-content {
+    background-color: #fefefe;
+    margin: 10% auto;
+    padding: 25px;
+    border: 1px solid #888;
+    width: 80%;
+    max-width: 550px;
+    border-radius: 8px;
+    position: relative;
+}
+.close-modal-btn {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+.modal-actions {
+    margin-top: 20px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+#employee-form-modal .modal-content {
+    max-width: 1000px;
+    margin: 5% auto;
+}
+#events-modal .modal-content {
+    max-width: 650px;
+}
+
+/* --- Pills (Days & Departments) --- */
+.day-pills-container, .department-pills-container {
+    display: flex;
+    gap: 5px;
+    margin: 0 10px;
+}
+.day-pill, .dept-pill {
+    min-width: 28px;
+    height: 28px;
+    padding: 0 5px;
+    border-radius: 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85em;
+    font-weight: bold;
+    cursor: pointer;
+    background-color: #e9ecef;
+    color: #adb5bd;
+    transition: background-color 0.2s, color 0.2s, transform 0.2s;
+    user-select: none;
+}
+.day-pill:hover, .dept-pill:hover {
+    transform: scale(1.1);
+}
+.day-pill.active, .dept-pill.active {
+    background-color: #3498db;
+    color: white;
+}
+.dept-pill.active {
+    background-color: #27ae60;
+}
+
+/* --- Shift Template List Item --- */
+.template-list {
+    list-style: none;
+    padding: 0;
+}
+.template-item {
+    flex-wrap: wrap;
+    gap: 10px;
+}
+.template-info {
+    flex-grow: 1;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+.template-time {
+    font-weight: bold;
+    color: #2c3e50;
+    white-space: nowrap;
+}
+.template-name-span {
+    color: #34495e;
+}
+.template-duration {
+    font-size: 0.9em;
+    color: #7f8c8d;
+}
+
+/* --- Multiselect Dropdown --- */
+.multiselect {
+    position: relative;
+    user-select: none;
+    min-width: 200px;
+}
+.select-box {
+    padding: 8px 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 0.95em;
+    background-color: white;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.checkboxes-container {
+    display: none;
+    position: absolute;
+    top: 105%; left: 0;
+    width: 100%;
+    border: 1px solid #ccc;
+    background: #fff;
+    z-index: 100;
+    max-height: 250px;
+    overflow-y: auto;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+.checkboxes-container.visible {
+    display: block;
+}
+.checkboxes-container label {
+    display: block;
+    padding: 8px 12px;
+    cursor: pointer;
+}
+.checkboxes-container label:hover {
+    background-color: #f0faff;
+}
+
+/* --- Responsive Components --- */
+@media (max-width: 768px) {
+    .form-group {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .modal-content {
+        margin: 5% auto;
+        width: 90%;
+    }
+}

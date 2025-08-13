@@ -130,7 +130,11 @@ export async function deleteDepartment(deptId) {
 
     users.forEach(user => { if (user.departmentId === deptId) user.departmentId = null; });
     roles.forEach(role => { if (role.departmentId === deptId) role.departmentId = null; });
-    shiftTemplates.forEach(st => { if (st.departmentId === deptId) st.departmentId = null; });
+    shiftTemplates.forEach(st => { 
+        if (st.departmentIds && st.departmentIds.includes(deptId)) {
+            st.departmentIds = st.departmentIds.filter(id => id !== deptId);
+        }
+     });
 
     if (restaurantSettings.minCoverage && restaurantSettings.minCoverage[deptId]) {
         delete restaurantSettings.minCoverage[deptId];
@@ -159,11 +163,20 @@ export function renderDepartments() {
     dom.departmentListUl.innerHTML = '';
     
     const selectDeptHTML = `<option value="" disabled data-lang-key="optSelectDept">${getTranslatedString('optSelectDept')}</option>`;
-    const allDeptsOptionHTML = `<option value="all" data-lang-key="optAllDepts">${getTranslatedString('optAllDepts')}</option>`;
-
-    dom.roleDepartmentSelect.innerHTML = selectDeptHTML;
-    dom.shiftTemplateDepartmentSelect.innerHTML = selectDeptHTML;
-    dom.employeeDepartmentSelect.innerHTML = `<option value="">-- ${getTranslatedString('optNoDept')} --</option>`;
+    
+    if (dom.roleDepartmentSelect) {
+        dom.roleDepartmentSelect.innerHTML = selectDeptHTML;
+    }
+    
+    // *** FIX IS HERE ***
+    // Add a check to ensure the element exists before trying to modify it.
+    if (dom.shiftTemplateDepartmentSelect) {
+        dom.shiftTemplateDepartmentSelect.innerHTML = selectDeptHTML;
+    }
+    
+    if (dom.employeeDepartmentSelect) {
+        dom.employeeDepartmentSelect.innerHTML = `<option value="">-- ${getTranslatedString('optNoDept')} --</option>`;
+    }
     
     const validDepartments = departments.filter(dept => dept && dept.id && dept.name);
     validDepartments.forEach(dept => {
@@ -183,9 +196,15 @@ export function renderDepartments() {
         option.value = dept.id;
         option.textContent = dept.name;
 
-        dom.employeeDepartmentSelect.appendChild(option.cloneNode(true));
-        dom.shiftTemplateDepartmentSelect.appendChild(option.cloneNode(true));
-        dom.roleDepartmentSelect.appendChild(option.cloneNode(true));
+        if (dom.employeeDepartmentSelect) {
+            dom.employeeDepartmentSelect.appendChild(option.cloneNode(true));
+        }
+        if (dom.shiftTemplateDepartmentSelect) {
+            dom.shiftTemplateDepartmentSelect.appendChild(option.cloneNode(true));
+        }
+        if (dom.roleDepartmentSelect) {
+            dom.roleDepartmentSelect.appendChild(option.cloneNode(true));
+        }
     });
 
     makeListSortable(dom.departmentListUl, departments, saveDepartments, renderDepartments);

@@ -1,7 +1,7 @@
 // js/features/coverage-calculator.js
-// handles the business logic for calculating the coverage summary.// js/features/coverage-calculator.js
+// handles the business logic for calculating the coverage summary.
 
-import { departments, restaurantSettings, scheduleAssignments, shiftTemplates } from '../state.js';
+import { departments, restaurantSettings, scheduleAssignments, shiftTemplates, roles } from '../state.js';
 import { getTranslatedString } from '../i18n.js';
 import { isEventOnDate } from '../ui/events.js';
 import { calculateOverlap } from '../utils.js';
@@ -28,17 +28,21 @@ export function calculateAndRenderCoverage(visibleUsers, weekDates, selectedDepa
             const dateStr = new Date(date.getTime() - (date.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
             const dayOfWeek = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'][date.getDay()];
             const daySettings = restaurantSettings[dayOfWeek] || {};
-
             const coverageSettings = restaurantSettings.minCoverage?.[dept.id]?.[dayOfWeek] || restaurantSettings.minCoverage?._default?.[dayOfWeek] || {};
 
             let coverage = { open: 0, lunch: 0, dinner: 0, close: 0 };
-            const deptUsers = visibleUsers.filter(u => u.departmentId === dept.id);
 
-            deptUsers.forEach(user => {
+            // Instead of filtering users by department here, we check all visible users.
+            visibleUsers.forEach(user => {
                 const dayData = scheduleAssignments[`${user.id}-${dateStr}`];
                 if (dayData && dayData.shifts) {
                     dayData.shifts.forEach(shift => {
-                        if (shift.type === 'shift') {
+                        // *** LOGIC CHANGE IS HERE ***
+                        // The coverage department is now determined by the SHIFT'S ROLE, not the USER's department.
+                        const assignedRole = roles.find(r => r.id === shift.roleId);
+                        
+                        // Only count this shift towards the current department's summary if the role matches.
+                        if (shift.type === 'shift' && assignedRole && assignedRole.departmentId === dept.id) {
                             const tpl = shift.isCustom ? null : shiftTemplates.find(st => st.id === shift.shiftTemplateId);
                             const start = shift.isCustom ? shift.customStart : tpl?.start;
                             const end = shift.isCustom ? shift.customEnd : tpl?.end;

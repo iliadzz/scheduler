@@ -4,7 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Las Tres Amigas</title>
-    <link rel="stylesheet" href="Style.css">
+    
+    <!-- Link to the new modular CSS files -->
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/layout.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/scheduler.css">
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -509,10 +515,6 @@
                     <label for="shift-template-name" data-lang-key="lblTemplateName">Template Name:</label>
                     <input type="text" id="shift-template-name" data-lang-key="phShiftTemplateName" placeholder="e.g., Morning Shift">
                 
-                    <label for="shift-template-department" data-lang-key="lblDept">Department:</label>
-                    <select id="shift-template-department">
-                    </select>
-                
                     <span class="time-input-label" data-lang-key="lblStartTime">Start Time:</span>
                     <div class="time-input-group">
                         <label for="shift-template-start-hour" class="sr-only">Start Hour</label>
@@ -529,8 +531,15 @@
                         <select id="shift-template-end-minute"></select>
                     </div>
 
-                     <button id="add-shift-template-btn" data-lang-key="btnAddShiftTemplate">Add Shift Template</button>
+                     <button id="add-shift-template-btn" data-lang-key="btnAddShiftTemplate">Add Shift</button>
                      <button id="cancel-edit-shift-template-btn" class="secondary-btn" style="display:none;" data-lang-key="btnCancelEdit">Cancel Edit</button>
+                </div>
+                
+                <div class="form-group" style="align-items: flex-start;">
+                    <label>Departments:</label>
+                    <div id="shift-form-department-pills" class="department-pills-container">
+                        <!-- Department pills for the form will be injected here by JS -->
+                    </div>
                 </div>
 
                 <hr style="border: 0; height: 1px; background: #e0e0e0; margin: 25px 0;">
