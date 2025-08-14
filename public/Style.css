@@ -1,0 +1,1435 @@
+/* General Styles */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
+    margin: 0;
+    background-color: #f0f2f5;
+    color: #333;
+    font-size: 15px;
+}
+
+.app-container {
+    max-width: 2160px;
+    margin: 0 auto;
+    background: #fff;
+}
+
+.app-header {
+    background-color: #2c3e50;
+    color: white;
+    padding: 15px 25px;
+    text-align: center;
+}
+
+.app-header h1 {
+    margin: 0;
+    font-size: 1.8em;
+}
+
+/* Tab Navigation */
+.tab-navigation {
+    display: flex;
+    background-color: #34495e;
+    border-bottom: 3px solid #2c3e50;
+    flex-wrap: wrap; /* Allow wrapping for responsive */
+}
+
+.tab-link {
+    padding: 12px 20px;
+    cursor: pointer;
+    border: none;
+    background-color: transparent;
+    color: #ecf0f1;
+    font-size: 1em;
+    transition: background-color 0.3s, color 0.3s;
+    border-bottom: 3px solid transparent;
+}
+.tab-link i {
+    margin-right: 8px;
+}
+
+.tab-link:hover {
+    background-color: #4a627a;
+    color: #fff;
+}
+
+.tab-link.active {
+    background-color: #fff;
+    color: #2c3e50;
+    border-bottom: 3px solid #e67e22;
+    font-weight: bold;
+}
+
+/* Exit Button */
+.exit-button {
+    margin-left: auto; /* Pushes the button to the far right */
+    background-color: #4b5563; /* A dark grey */
+    color: white;
+    padding: 12px 20px;
+    border: none;
+    cursor: pointer;
+    font-size: 1em;
+    transition: background-color 0.3s;
+    border-bottom: 3px solid transparent; /* Match tab links for alignment */
+}
+.exit-button:hover {
+    background-color: #c0392b; /* A danger red on hover */
+}
+.exit-button i {
+    margin-right: 8px;
+}
+
+
+/* Tab Content */
+.tab-content-container {
+    padding: 25px;
+}
+
+.tab-content {
+    display: none;
+    animation: fadeIn 0.5s;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+h2 {
+    color: #2c3e50;
+    margin-top: 0;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #e0e0e0;
+}
+h2 i {
+    margin-right: 10px;
+    color: #e67e22;
+}
+
+/* Section Header for moving buttons to top right */
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    /* border-bottom: 2px solid #e0e0e0; */ /* Removed to avoid double-underline */
+    /* padding-bottom: 10px; */
+    margin-bottom: 20px;
+}
+.section-header h2 {
+    margin: 0;
+    border: none;
+    padding: 0;
+}
+.header-actions button {
+    margin-left: 10px;
+}
+
+
+/* Form Groups and Inputs */
+.form-group {
+    margin-bottom: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+}
+
+.form-group label {
+    font-weight: bold;
+    margin-right: 5px;
+    min-width: 100px;
+}
+
+.checkbox-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    background-color: #f9f9f9;
+    border: 1px solid #e0e0e0;
+    padding: 15px;
+    border-radius: 4px;
+}
+.checkbox-group label {
+    font-weight: normal;
+}
+
+
+.form-group input[type="text"],
+.form-group input[type="time"],
+.form-group input[type="date"],
+.form-group input[type="color"],
+.form-group input[type="number"],
+.form-group input[type="tel"],
+.form-group input[type="email"],
+.form-group select {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 0.95em;
+    min-width: 180px;
+    flex-grow: 1;
+}
+#employee-vacation-balance {
+    flex-grow: 0.2;
+    min-width: 80px;
+}
+.form-group input[type="color"] {
+    padding: 2px;
+    height: 38px;
+    min-width: 50px;
+    flex-grow: 0;
+}
+
+
+button {
+    background-color: #3498db;
+    color: white;
+    padding: 10px 18px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.95em;
+    transition: background-color 0.2s;
+}
+button i {
+    margin-right: 5px;
+}
+
+button:hover {
+    background-color: #2980b9;
+}
+
+button:disabled {
+    background-color: #bdc3c7;
+    cursor: not-allowed;
+}
+button:disabled:hover {
+    background-color: #bdc3c7;
+}
+
+button.danger-btn {
+    background-color: #e74c3c;
+}
+button.danger-btn:hover {
+    background-color: #c0392b;
+}
+button.secondary-btn {
+    background-color: #95a5a6;
+    color: #2c3e50;
+}
+button.secondary-btn:hover {
+    background-color: #7f8c8d;
+}
+button.secondary-btn.active {
+    background-color: #3498db;
+    color: white;
+    font-weight: bold;
+}
+
+
+/* Lists (for Departments, Roles, Users) */
+ul {
+    list-style: none;
+    padding: 0;
+}
+
+ul li {
+    background: #f9f9f9;
+    border: 1px solid #e0e0e0;
+    padding: 10px 15px;
+    margin-bottom: 8px;
+    border-radius: 4px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+ul li .role-color-swatch {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border-radius: 3px;
+    margin-right: 10px;
+    border: 1px solid #ccc;
+    vertical-align: middle;
+}
+
+ul li .item-actions button {
+    margin-left: 8px;
+    padding: 5px 8px;
+    font-size: 0.8em;
+}
+
+/* Scheduler Specific Styles */
+.scheduler-controls {
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px; /* This will help space out the new button */
+    flex-wrap: wrap;
+}
+.scheduler-controls #current-week-display {
+    font-weight: bold;
+    font-size: 1.1em;
+    color: #2c3e50;
+}
+.scheduler-controls input[type="date"] { 
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 0.9em;
+}
+.scheduler-controls label { 
+    font-weight: normal;
+    margin-right: 5px;
+}
+
+.scheduler-controls select {
+    padding: 8px 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 0.95em;
+    background-color: white;
+}
+
+/* --- Multi-select Dropdown Styles --- */
+.multiselect {
+    position: relative;
+    user-select: none;
+    min-width: 200px;
+}
+.select-box {
+    padding: 8px 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 0.95em;
+    background-color: white;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.select-box.expanded {
+    border-color: #3498db;
+}
+.checkboxes-container {
+    display: none;
+    position: absolute;
+    top: 105%;
+    left: 0;
+    width: 100%;
+    border: 1px solid #ccc;
+    background: #fff;
+    z-index: 100;
+    max-height: 250px;
+    overflow-y: auto;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+.checkboxes-container.visible {
+    display: block;
+}
+.checkboxes-container label {
+    display: block;
+    padding: 8px 12px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    font-weight: normal;
+}
+.checkboxes-container label:hover {
+    background-color: #f0faff;
+}
+.checkboxes-container label input {
+    margin-right: 8px;
+}
+
+
+#schedule-grid-container {
+    display: grid;
+    grid-template-columns: 200px repeat(7, 1fr);
+    border: 1px solid #ccc;
+    background-color: #fff;
+    font-size: 0.9em;
+}
+
+.schedule-header-row {
+    display: contents;
+}
+
+.schedule-header-row > div {
+    background-color: #e9ecef;
+    padding: 12px 8px;
+    font-weight: bold;
+    text-align: center;
+    border-bottom: 1px solid #ccc;
+    border-right: 1px solid #ccc;
+    position: relative; 
+    line-height: 1.2;
+}
+.schedule-header-row > div:last-child {
+    border-right: none;
+}
+.header-employee, .header-coverage-summary-label {
+    text-align: left !important;
+    position: sticky;
+    left: 0;
+    background-color: #e9ecef;
+    z-index: 10;
+}
+.hours-header {
+    font-size: 0.85em;
+    color: #555;
+}
+
+#schedule-grid-body {
+    display: contents;
+}
+
+.employee-row-label {
+    padding: 6px 8px;
+    border-bottom: 1px solid #ccc;
+    border-right: 1px solid #ccc;
+    background-color: #f8f9fa;
+    font-weight: 500;
+    position: sticky;
+    left: 0;
+    z-index: 5;
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+}
+
+.employee-name-hours {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 2px;
+}
+.employee-name {
+    font-weight: 500;
+}
+.employee-stats {
+    font-size: 0.85em;
+    font-weight: normal;
+}
+.total-hours {
+    font-weight: bold;
+    color: #e67e22;
+    margin-right: 12px;
+}
+.vacation-counter {
+    font-weight: bold;
+    color: #3498db;
+    cursor: pointer;
+    transition: color 0.2s, background-color 0.2s;
+    padding: 1px 4px;
+    border-radius: 3px;
+}
+.vacation-counter:hover {
+    background-color: #eaf5fb;
+    color: #2980b9;
+}
+.total-hours i, .vacation-counter i {
+    margin-right: 4px;
+}
+
+.clear-employee-week-btn {
+    background-color: transparent;
+    color: #e74c3c;
+    border: 1px solid transparent;
+    padding: 3px 6px;
+    font-size: 0.9em;
+    cursor: pointer;
+    border-radius: 4px;
+    margin-left: 8px; 
+}
+.clear-employee-week-btn:hover {
+    background-color: #fbeeee;
+    color: #c0392b;
+    border-color: #e74c3c;
+}
+.clear-employee-week-btn i {
+    margin-right: 0; 
+}
+.copy-employee-week-btn {
+    background-color: transparent;
+    color: #3498db;
+    border: 1px solid transparent;
+    padding: 3px 6px;
+    font-size: 0.9em;
+    cursor: pointer;
+    border-radius: 4px;
+    margin-left: 5px;
+}
+
+.copy-employee-week-btn:hover {
+    background-color: #eaf5fb;
+    color: #2980b9;
+    border-color: #3498db;
+}
+
+.copy-employee-week-btn i {
+    margin-right: 0;
+}
+.draggable-employee-row { /* For employee row reordering */
+    cursor: move;
+}
+.employee-row-label.employee-row-dragging {
+    opacity: 0.6 !important; /* Ensure dragging style is prominent */
+    background-color: #d4e6f1 !important;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+.employee-row-label.employee-row-drag-over {
+    border-top: 3px dashed #3498db;
+}
+
+
+.day-cell {
+    min-height: 50px;
+    border-bottom: 1px solid #ccc;
+    border-right: 1px solid #ccc;
+    padding: 5px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 3px;
+    cursor: default; 
+}
+.day-cell:last-child {
+    border-right: none;
+}
+.day-cell.can-assign:hover { 
+    background-color: #f0faff;
+}
+.day-cell.drag-over {
+    background-color: #c8e6c9 !important;
+    border: 2px dashed #4CAF50;
+}
+.shifts-container {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    flex-grow: 1;
+}
+
+
+.shift-item, .time-off-item { 
+    border-radius: 3px;
+    font-size: 0.85em;
+    position: relative;
+    transition: box-shadow 0.2s, transform 0.2s, background-color 0.2s, color 0.2s; 
+    cursor: pointer; 
+    border: 1px solid rgba(0,0,0,0.1); 
+}
+
+.shift-item {
+    display: flex;
+    align-items: baseline;
+    gap: 5px;
+    font-weight: bold;
+    padding: 0.8em 6px;
+    justify-content: center;
+}
+.shift-item.dragging, .time-off-item.dragging { 
+    opacity: 0.5;
+    border: 1px dashed #000 !important; 
+    cursor: grabbing;
+}
+
+
+.shift-item .shift-time {
+    /* font-weight is now inherited from .shift-item */
+}
+.shift-item .shift-role {
+    font-size: 0.9em;
+    opacity: 0.9; 
+}
+.shift-item .delete-assigned-shift-btn,
+.time-off-item .delete-assigned-shift-btn {
+    position: absolute;
+    top: 1px; 
+    right: 1px; 
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 0.85em; 
+    padding: 1px 3px; 
+    line-height: 1;
+    display: none;
+    z-index: 1;
+    border-radius: 50%; 
+    color: #c0392b; 
+}
+.shift-item:hover .delete-assigned-shift-btn,
+.time-off-item:hover .delete-assigned-shift-btn {
+    display: inline-block; 
+    background-color: rgba(255, 255, 255, 0.7); 
+}
+.shift-item .delete-assigned-shift-btn:hover,
+.time-off-item .delete-assigned-shift-btn:hover {
+    color: #8f2d21; 
+    font-weight: bold;
+}
+
+.event-header-name {
+    font-weight: normal;
+    font-size: 0.9em;
+    color: #555;
+    margin-left: 4px;
+    word-break: break-word; /* Ensure long event names wrap */
+}
+
+/* --- Corrected Event Day Highlighting --- */
+.header-day.is-event-day {
+    background-color: #fffbe6; /* Light yellow */
+    border-left: 3px solid #f0ad4e;
+    border-right: 3px solid #f0ad4e;
+    border-top: 3px solid #f0ad4e;
+}
+
+.header-coverage-summary.is-event-day {
+    background-color: #fffbe6; /* Light yellow */
+    border-left: 3px solid #f0ad4e;
+    border-right: 3px solid #f0ad4e;
+}
+
+.day-cell.is-event-day {
+    background-color: #fffefa; /* Lighter yellow */
+    border-left: 3px solid #f0ad4e;
+    border-right: 3px solid #f0ad4e;
+}
+
+/* Time Off Specific Styles */
+.time-off-item {
+    background-color: #6c757d; 
+    color: white; 
+    text-align: center;
+    font-weight: bold;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 0.8em 6px;
+
+}
+.time-off-item .time-off-reason {
+    display: block;
+}
+.time-off-item .time-off-count {
+    font-size: 0.9em;
+    font-weight: normal;
+    opacity: 0.9;
+    margin-left: 5px;
+}
+.time-off-item .delete-assigned-shift-btn {
+    color: #f8f9fa; 
+}
+.time-off-item:hover .delete-assigned-shift-btn {
+    background-color: rgba(0,0,0,0.2); 
+    color: #fff;
+}
+
+
+/* Modal Styles */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 100;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.5);
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 10% auto;
+    padding: 25px;
+    border: 1px solid #888;
+    width: 80%;
+    max-width: 550px;
+    border-radius: 8px;
+    position: relative;
+}
+
+/* MODIFICATION: Wider modal for employee form */
+#employee-form-modal .modal-content {
+    max-width: 1000px;
+    margin: 5% auto;
+}
+
+#events-modal .modal-content {
+    max-width: 650px;
+}
+.event-form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px 30px;
+}
+
+/* Event Color Palette */
+.color-palette {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 5px;
+    margin-top: 5px;
+}
+.color-swatch {
+    width: 25px;
+    height: 25px;
+    border-radius: 4px;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: transform 0.2s, border-color 0.2s;
+}
+.color-swatch:hover {
+    transform: scale(1.1);
+}
+.color-swatch.selected {
+    border-color: #2c3e50;
+    box-shadow: 0 0 5px rgba(0,0,0,0.3);
+}
+
+/* Styling for the new event list */
+#event-list-ul li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 15px;
+    background-color: #f9f9f9;
+    border: 1px solid #e0e0e0;
+    margin-bottom: 8px;
+    border-radius: 4px;
+}
+#event-list-ul .item-actions button {
+    margin-left: 8px;
+    padding: 5px 8px;
+    font-size: 0.8em;
+}
+
+
+.close-modal-btn {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.close-modal-btn:hover,
+.close-modal-btn:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+#assign-modal-paste-option p {
+    margin-top: 0;
+    margin-bottom: 10px;
+}
+#assign-modal-paste-option button {
+    margin-right: 10px;
+}
+
+.modal-actions {
+    margin-top: 20px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+/* --- Employee Form Layout --- */
+.employee-form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Adjusted min-width */
+    gap: 20px 40px;
+    margin-bottom: 20px;
+}
+.form-column h4 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: #34495e;
+    border-bottom: 1px solid #e0e0e0;
+    padding-bottom: 8px;
+}
+.form-column .form-group {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+.form-column .form-group label,
+.form-column .form-group input,
+.form-column .form-group select {
+    width: 100%;
+}
+.phone-input-group {
+    display: flex;
+    width: 100%;
+    gap: 5px;
+}
+.phone-input-group select {
+    flex-grow: 0;
+    min-width: 100px;
+}
+.phone-input-group input {
+    flex-grow: 1;
+}
+.form-divider {
+    margin: 20px 0;
+    border: 0;
+    height: 1px;
+    background-color: #e0e0e0;
+}
+
+
+/* Shift Template Time Selects & Modal Custom Time Selects */
+#shifts-tab .form-group select,
+#assign-modal-custom-fields .form-group select {
+    min-width: 70px;
+    flex-grow: 0;
+    margin-right: 5px;
+}
+#assign-modal-custom-fields .form-group select:last-of-type {
+    margin-right: 0;
+}
+#assign-type-choice button {
+    flex-grow: 1;
+}
+
+/* Settings Tab Specifics */
+.button-like-label {
+    display: inline-block;
+    padding: 10px 18px;
+    background-color: #95a5a6;
+    color: #2c3e50;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.95em;
+    transition: background-color 0.2s;
+    text-align: center;
+}
+.button-like-label:hover {
+    background-color: #7f8c8d;
+}
+.button-like-label i {
+    margin-right: 5px;
+}
+#settings-tab small {
+    color: #555;
+    display: block; 
+    margin-top: 5px;
+}
+#settings-tab h3 {
+    width: 100%;
+    margin-bottom: 10px;
+    color: #34495e;
+}
+#settings-tab hr {
+    border: 0;
+    height: 1px;
+    background: #e0e0e0;
+    margin: 25px 0; 
+}
+
+#save-custom-as-template-section {
+    margin-top: 15px;
+    border-top: 1px solid #e0e0e0;
+    padding-top: 15px;
+}
+#save-custom-as-template-section .form-group label {
+    font-weight: normal;
+    cursor: pointer;
+    width: auto;
+}
+#save-custom-as-template-section .form-group input[type="checkbox"] {
+    width: auto;
+    min-width: auto;
+    flex-grow: 0;
+    margin-right: 8px;
+}
+#new-template-fields {
+    padding-left: 15px;
+    border-left: 3px solid #e9ecef;
+    margin-top: 15px;
+}
+#new-template-fields h4 {
+    margin-top: 15px;
+    margin-bottom: 10px;
+    font-size: 1.1em;
+    color: #34495e;
+}
+
+
+/* Department Dragging Styles */
+#departments-tab ul li.draggable-item {
+    cursor: move;
+}
+
+#departments-tab ul li.dragging-item {
+    opacity: 0.5;
+    background-color: #d4e6f1;
+}
+
+#departments-tab ul li.drag-over-item {
+    border-top: 3px dashed #3498db;
+}
+
+/* Role Dragging Styles */
+#roles-tab ul li.draggable-item {
+    cursor: move;
+}
+#roles-tab ul li.dragging-item {
+    opacity: 0.5;
+    background-color: #d4e6f1;
+}
+#roles-tab ul li.drag-over-item {
+    border-top: 3px dashed #3498db;
+}
+
+#event-specific-dates-list li {
+    font-size: 0.9em;
+    padding: 8px 12px;
+}
+
+#event-specific-dates-list button {
+    padding: 2px 6px;
+    font-size: 0.8em;
+}
+
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .tab-navigation {
+        flex-direction: column;
+    }
+    .tab-link {
+        text-align: left;
+        border-bottom: 1px solid #4a627a;
+    }
+    .tab-link.active {
+        border-bottom: 3px solid #e67e22;
+    }
+    .exit-button {
+        margin-left: 0; /* Stack vertically with other links */
+        text-align: left;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .form-group {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .form-group input, .form-group select, .form-group button, .button-like-label {
+        width: 100%;
+        box-sizing: border-box;
+        margin-bottom: 5px; 
+    }
+    .form-group label { 
+        min-width: auto;
+        width: 100%;
+        margin-bottom: 3px;
+    }
+    #schedule-grid-container {
+        font-size: 0.8em;
+        grid-template-columns: 100px repeat(7, 1fr); 
+    }
+    .scheduler-controls input[type="date"] { 
+        min-width: 150px; 
+    }
+    .header-employee {
+        font-size: 0.9em; 
+    }
+    .shift-item, .time-off-item {
+        font-size: 0.8em;
+    }
+     .modal-content {
+        margin: 5% auto;
+        width: 90%;
+    }
+    #employee-form-modal .modal-content {
+        max-width: 90%;
+    }
+    .employee-row-label {
+        font-size: 0.9em; 
+        padding-right: 2px;
+    }
+    .clear-employee-week-btn {
+        padding: 2px 4px; 
+        font-size: 0.8em;
+        margin-left: 4px;
+    }
+    #settings-tab .form-group small { 
+        width: 100%;
+        margin-left: 0 !important;
+    }
+}
+
+/* Print Specific Styles */
+@media print {
+    body {
+        background-color: #fff;
+        font-size: 9pt;
+        color: #000;
+    }
+
+    .app-header, 
+    .tab-navigation, 
+    .scheduler-controls, 
+    .item-actions, 
+    .modal,
+    .clear-employee-week-btn {
+        display: none !important;
+    }
+
+    .app-container {
+        max-width: 100%;
+        margin: 0;
+        box-shadow: none;
+        border: none;
+    }
+
+    .tab-content-container {
+        padding: 0;
+    }
+    .tab-content {
+        display: none;
+        animation: none;
+    }
+    #scheduler-tab.active {
+        display: block !important;
+    }
+
+    #schedule-grid-container {
+        display: grid !important;
+        grid-template-columns: 140px repeat(7, 1fr);
+        border: 1px solid #000;
+    }
+
+    .schedule-header-row > div,
+    .employee-row-label,
+    .day-cell {
+        border-color: #000;
+    }
+
+    .header-employee, .employee-row-label {
+        position: static; 
+        left: auto;
+        z-index: auto;
+    }
+    
+    .shift-item, 
+    .time-off-item, 
+    .role-color-swatch {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    .shift-item, .time-off-item {
+        border: 1px solid #666;
+    }
+
+    .delete-assigned-shift-btn {
+        display: none !important;
+    }
+}
+
+/* --- Additions for Employee Visibility Toggle --- */
+.item-actions .visibility-toggle-btn {
+    background-color: transparent;
+    border: none;
+    color: #3498db; /* Blue for visible */
+    font-size: 1.2em; /* Make icon a bit bigger */
+    padding: 5px 8px;
+    cursor: pointer;
+    transition: color 0.2s;
+    vertical-align: middle; /* Align with other buttons */
+}
+.item-actions .visibility-toggle-btn.inactive {
+    color: #95a5a6; /* Grey for hidden */
+}
+.item-actions .visibility-toggle-btn:hover {
+    color: #2980b9;
+}
+.item-actions .visibility-toggle-btn.inactive:hover {
+    color: #7f8c8d;
+}
+
+/* --- Coverage Summary Styles --- */
+.header-coverage-summary, .header-coverage-summary-label {
+    background-color: #f8f9fa;
+    font-size: 0.8em;
+    padding: 4px 8px;
+    min-height: 30px;
+    display: flex;
+    flex-direction: row; 
+    flex-wrap: wrap;     
+    align-items: center; 
+    justify-content: center; 
+    gap: 4px 8px;        
+    border-bottom: 1px solid #ccc;
+    border-right: 1px solid #ccc;
+}
+.header-coverage-summary-label {
+    font-weight: bold;
+    color: #2c3e50;
+    justify-content: left;
+    padding-left: 8px;
+}
+.coverage-item {
+    font-weight: bold;
+    white-space: nowrap;
+}
+.coverage-danger {
+    color: #e74c3c;
+}
+.coverage-success {
+    color: #27ae60;
+}
+.coverage-over {
+    color: #3498db;
+}
+.coverage-row-deficient {
+    background-color: #fbeeee !important;
+}
+
+
+/* --- Settings Grids Styles --- */
+.settings-section {
+    margin-bottom: 25px;
+}
+.settings-section h4 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: #34495e;
+    border-bottom: 1px solid #e0e0e0;
+    padding-bottom: 8px;
+}
+.settings-section p, .settings-section > label {
+    margin-bottom: 15px;
+    color: #555;
+    font-size: 0.95em;
+}
+
+.hours-grid, .min-coverage-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
+    gap: 20px;
+}
+.day-settings-card {
+    border: 1px solid #dee2e6;
+    border-radius: 5px;
+    padding: 15px;
+    background-color: #fdfdfd;
+}
+.day-settings-card h5 {
+    margin: 0 0 15px 0;
+    font-size: 1.1em;
+    text-align: center;
+    color: #2c3e50;
+}
+.day-settings-card .form-group {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+.day-settings-card .form-group label {
+    min-width: auto; 
+    font-weight: normal;
+    flex-shrink: 0; 
+}
+.day-settings-card .form-group select {
+    padding: 6px;
+    min-width: auto;
+    width: 75px; 
+    font-size: 0.9em;
+}
+.min-coverage-grid .form-group {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+}
+.min-coverage-grid label {
+    font-weight: normal;
+}
+.min-coverage-grid input[type="number"] {
+    width: 50px; 
+    padding: 6px;
+}
+
+/* Shift Template Tab Specific Layout Adjustments */
+#shifts-tab .section-header .form-group {
+    margin-bottom: 0; 
+}
+
+#shifts-tab > .form-group label {
+    min-width: auto; 
+}
+
+.department-group {
+    margin-bottom: 25px; 
+}
+
+.department-group h3 {
+    margin-bottom: 15px;
+    color: #2c3e50;
+    border-bottom: 2px solid #e9ecef;
+    padding-bottom: 8px;
+    font-size: 1.2em;
+}
+
+.template-list {
+    list-style: none;
+    padding: 0;
+}
+
+.template-item {
+    background: #f9f9f9;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 15px;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.template-info {
+    flex-grow: 1;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+.template-time {
+    font-weight: bold;
+    color: #2c3e50;
+    white-space: nowrap;
+}
+.template-name-span {
+    color: #34495e;
+}
+.template-duration {
+    font-size: 0.9em;
+    color: #7f8c8d;
+}
+
+.day-pills-container, .department-pills-container {
+    display: flex;
+    gap: 5px;
+    margin: 0 10px;
+}
+.day-pill, .dept-pill {
+    min-width: 28px;
+    height: 28px;
+    padding: 0 5px;
+    border-radius: 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85em;
+    font-weight: bold;
+    cursor: pointer;
+    background-color: #e9ecef;
+    color: #adb5bd;
+    transition: background-color 0.2s, color 0.2s, transform 0.2s;
+    user-select: none;
+}
+.day-pill:hover, .dept-pill:hover {
+    transform: scale(1.1);
+}
+.day-pill.active, .dept-pill.active {
+    background-color: #3498db;
+    color: white;
+}
+.dept-pill.active {
+    background-color: #27ae60;
+}
+
+
+/* === Appended Login Styles (from V2) === */
+#login-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    background-color: #f0f2f5;
+}
+
+.login-box {
+    background: #fff;
+    padding: 40px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+}
+
+.login-box h2 {
+    margin-top: 0;
+    margin-bottom: 25px;
+    color: #2c3e50;
+}
+
+.login-form-group {
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+.login-form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #333;
+}
+
+.login-form-group input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+    font-size: 1em;
+}
+
+#login-error-message {
+    color: #e74c3c;
+    margin-bottom: 15px;
+    min-height: 1.2em;
+}
+
+.login-actions {
+    display: flex;
+    gap: 15px;
+}
+
+.login-actions button {
+    flex-grow: 1;
+    padding: 12px;
+    font-size: 1.1em;
+}
+
+.app-container { display: none; }
+#login-container { display: flex; }
+
+#employee-form-modal .employee-form-grid {
+    max-height: 65vh; 
+    overflow-y: auto;  
+    padding-right: 15px;
+    display: block;    
+}
+
+#employee-form-modal .form-column {
+    margin-bottom: 25px;
+}
+
+.form-section-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 15px 20px; 
+}
+
+#employee-form-modal .form-group {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px; 
+    margin-bottom: 0; 
+}
+
+#employee-form-modal .form-group label,
+#employee-form-modal .form-group input,
+#employee-form-modal .form-group select,
+#employee-form-modal .phone-input-group {
+    width: 100%; 
+}
+
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+}
+
+.time-input-group {
+    display: flex;
+    align-items: center;
+}
+
+.time-input-label {
+    font-weight: bold;
+    margin-right: 5px;
+}
+
+.form-group-column {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+#roles-tab .color-palette {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr); 
+    gap: 6px;
+    max-width: 280px; 
+}
+
+#roles-tab .color-swatch {
+    width: 30px;
+    height: 30px;
+    border-radius: 5px;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: transform 0.2s, border-color 0.2s;
+}
+
+#roles-tab .color-swatch:hover {
+    transform: scale(1.1);
+}
+
+#roles-tab .color-swatch.selected {
+    border-color: #2c3e50; 
+    box-shadow: 0 0 5px rgba(0,0,0,0.4);
+}
+
+.color-picker-wrapper {
+    position: relative;
+}
+
+.color-preview-btn {
+    width: 100px;
+    height: 38px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    cursor: pointer;
+    background-color: #e0e0e0;
+}
+
+.color-popup {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    z-index: 100;
+    background: #fff;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 10px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
