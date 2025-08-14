@@ -507,8 +507,7 @@
                     <input type="text" id="shift-template-name" data-lang-key="phShiftTemplateName" placeholder="e.g., Morning Shift">
 
                     <label for="shift-template-department" data-lang-key="lblDept">Department:</label>
-                    <select id="shift-template-department">
-                    </select>
+                    <div id="shift-form-department-pills" class="day-pills-container"></div>
 
                     <span class="time-input-label" data-lang-key="lblStartTime">Start Time:</span>
                     <div class="time-input-group">
@@ -531,16 +530,8 @@
                 </div>
                 
                 <div class="form-group">
-                    <label>Available on Days:</label>
-                    <div id="shift-template-days-group" class="checkbox-group">
-                        <label><input type="checkbox" value="mon" checked> Mon</label>
-                        <label><input type="checkbox" value="tue" checked> Tue</label>
-                        <label><input type="checkbox" value="wed" checked> Wed</label>
-                        <label><input type="checkbox" value="thu" checked> Thu</label>
-                        <label><input type="checkbox" value="fri" checked> Fri</label>
-                        <label><input type="checkbox" value="sat" checked> Sat</label>
-                        <label><input type="checkbox" value="sun" checked> Sun</label>
-                    </div>
+                    <label>Days:</label>
+                    <div id="shift-form-day-pills" class="day-pills-container"></div>
                 </div>
 
                 <hr style="border: 0; height: 1px; background: #e0e0e0; margin: 25px 0;">

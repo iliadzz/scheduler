@@ -116,29 +116,17 @@ window.__startApp = function() {
 
     const undoBtn = document.getElementById('undo-btn');
     const redoBtn = document.getElementById('redo-btn');
-    if (undoBtn) undoBtn.addEventListener('click', () => {
-        HistoryManager.undo();
-        renderWeeklySchedule();
-    });
-    if (redoBtn) redoBtn.addEventListener('click', () => {
-        HistoryManager.redo();
-        renderWeeklySchedule();
-    });
+    if (undoBtn) undoBtn.addEventListener('click', () => HistoryManager.undo());
+    if (redoBtn) redoBtn.addEventListener('click', () => HistoryManager.redo());
 
     window.addEventListener('keydown', (event) => {
         if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'z') {
             event.preventDefault();
-            if (event.shiftKey) { 
-                HistoryManager.redo();
-            } else { 
-                HistoryManager.undo();
-            }
-            renderWeeklySchedule();
+            if (event.shiftKey) { HistoryManager.redo(); } else { HistoryManager.undo(); }
         }
         if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'y') {
             event.preventDefault();
             HistoryManager.redo();
-            renderWeeklySchedule();
         }
     });
 

@@ -5,7 +5,6 @@ import * as dom from '../dom.js';
 import { getTranslatedString } from '../i18n.js';
 import { populateTimeSelectsForElements, generateId, formatTimeToHHMM, calculateShiftDuration, formatTimeForDisplay } from '../utils.js';
 import { HistoryManager, ModifyAssignmentCommand } from '../features/history.js';
-import { renderWeeklySchedule } from './scheduler.js';
 
 let currentAssignMode = 'template';
 let editingAssignmentDetails = null;
@@ -205,8 +204,7 @@ export function handleAssignShift() {
 
     const command = new ModifyAssignmentCommand(userId, dateStr, newAssignment, oldAssignment);
     HistoryManager.doAction(command);
-    
-    renderWeeklySchedule(); // Re-render the UI after the action
+
     dom.assignShiftModal.style.display = 'none';
 }
 

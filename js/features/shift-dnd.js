@@ -4,7 +4,6 @@
 // Corrected import paths
 import { generateId } from '../utils.js';
 import { HistoryManager, DragDropCommand } from './history.js';
-import { renderWeeklySchedule } from '../ui/scheduler.js';
 
 let draggedShiftDetails = null;
 
@@ -60,5 +59,4 @@ export function handleDrop(event) {
     const command = new DragDropCommand(commandDetails);
     HistoryManager.doAction(command);
     draggedShiftDetails = null;
-    renderWeeklySchedule(); // Re-render the UI after the action
 }
