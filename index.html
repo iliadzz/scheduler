@@ -497,22 +497,19 @@
             <section id="shifts-tab" class="tab-content">
                 <div class="section-header">
                     <h2 data-lang-key="headerManageShiftTemplates"><i class="fas fa-clock"></i> Manage Shift Templates</h2>
-                    <div class="form-group">
-                        <label for="shift-template-list-filter" data-lang-key="lblFilterByDept">Filter by Department:</label>
-                        <select id="shift-template-list-filter">
-                        </select>
-                    </div>
+                    <div class="header-actions">
+                        </div>
                 </div>
 
                 <input type="hidden" id="editing-shift-template-id">
                 <div class="form-group">
                     <label for="shift-template-name" data-lang-key="lblTemplateName">Template Name:</label>
                     <input type="text" id="shift-template-name" data-lang-key="phShiftTemplateName" placeholder="e.g., Morning Shift">
-                
+
                     <label for="shift-template-department" data-lang-key="lblDept">Department:</label>
-                    <div id="shift-form-department-pills" class="department-pills-container">
-                        </div>
-                
+                    <select id="shift-template-department">
+                    </select>
+
                     <span class="time-input-label" data-lang-key="lblStartTime">Start Time:</span>
                     <div class="time-input-group">
                         <label for="shift-template-start-hour" class="sr-only">Start Hour</label>
@@ -533,10 +530,17 @@
                      <button id="cancel-edit-shift-template-btn" class="secondary-btn" style="display:none;" data-lang-key="btnCancelEdit">Cancel Edit</button>
                 </div>
                 
-                <div class="form-group" style="align-items: flex-start;">
-                    <label>Days:</label>
-                    <div id="shift-form-day-pills" class="day-pills-container">
-                        </div>
+                <div class="form-group">
+                    <label>Available on Days:</label>
+                    <div id="shift-template-days-group" class="checkbox-group">
+                        <label><input type="checkbox" value="mon" checked> Mon</label>
+                        <label><input type="checkbox" value="tue" checked> Tue</label>
+                        <label><input type="checkbox" value="wed" checked> Wed</label>
+                        <label><input type="checkbox" value="thu" checked> Thu</label>
+                        <label><input type="checkbox" value="fri" checked> Fri</label>
+                        <label><input type="checkbox" value="sat" checked> Sat</label>
+                        <label><input type="checkbox" value="sun" checked> Sun</label>
+                    </div>
                 </div>
 
                 <hr style="border: 0; height: 1px; background: #e0e0e0; margin: 25px 0;">
