@@ -510,8 +510,8 @@
                     <input type="text" id="shift-template-name" data-lang-key="phShiftTemplateName" placeholder="e.g., Morning Shift">
                 
                     <label for="shift-template-department" data-lang-key="lblDept">Department:</label>
-                    <select id="shift-template-department">
-                    </select>
+                    <div id="shift-form-department-pills" class="department-pills-container">
+                        </div>
                 
                     <span class="time-input-label" data-lang-key="lblStartTime">Start Time:</span>
                     <div class="time-input-group">
@@ -534,10 +534,9 @@
                 </div>
                 
                 <div class="form-group" style="align-items: flex-start;">
-                    <label>Departments:</label>
-                    <div id="shift-form-department-pills" class="department-pills-container">
-                        <!-- Department pills for the form will be injected here by JS -->
-                    </div>
+                    <label>Days:</label>
+                    <div id="shift-form-day-pills" class="day-pills-container">
+                        </div>
                 </div>
 
                 <hr style="border: 0; height: 1px; background: #e0e0e0; margin: 25px 0;">

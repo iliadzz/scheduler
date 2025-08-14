@@ -8,6 +8,36 @@ import { makeListSortable } from '../features/list-dnd.js';
 
 const SHIFTS_FILTER_KEY = 'shiftsDepartmentFilterState';
 
+let tempSelectedDeptIds = [];
+const daysOrder = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+const dayNames = { mon: 'Mon', tue: 'Tue', wed: 'Wed', thu: 'Thu', fri: 'Fri', sat: 'Sat', sun: 'Sun' };
+
+
+function renderPills(container, items, selectedIds, key, nameProp, activeClass) {
+    container.innerHTML = '';
+    items.forEach(item => {
+        const pill = document.createElement('div');
+        pill.className = `pill ${key}-pill`;
+        pill.dataset.id = item.id;
+        pill.textContent = item[nameProp];
+        if (selectedIds.includes(item.id)) {
+            pill.classList.add(activeClass);
+        }
+        pill.addEventListener('click', () => {
+            pill.classList.toggle(activeClass);
+        });
+        container.appendChild(pill);
+    });
+}
+
+function getSelectedPillIds(container, activeClass) {
+    const selected = [];
+    container.querySelectorAll(`.pill.${activeClass}`).forEach(pill => {
+        selected.push(pill.dataset.id);
+    });
+    return selected;
+}
+
 export function ensureShiftDeptMultiselect() {
   if (document.getElementById('shift-dept-multiselect')) return;
   const wrapper = document.createElement('div');
@@ -101,7 +131,6 @@ function updateShiftDeptLabel() {
 export function populateShiftTemplateFormForEdit(template) {
     dom.editingShiftTemplateIdInput.value = template.id;
     dom.shiftTemplateNameInput.value = template.name;
-    dom.shiftTemplateDepartmentSelect.value = template.departmentId || "";
     const [startH, startM] = template.start.split(':');
     const [endH, endM] = template.end.split(':');
     dom.shiftTemplateStartHourSelect.value = startH;
@@ -109,10 +138,9 @@ export function populateShiftTemplateFormForEdit(template) {
     dom.shiftTemplateEndHourSelect.value = endH;
     dom.shiftTemplateEndMinuteSelect.value = endM;
 
-    document.querySelectorAll('#shift-template-days-group input[type="checkbox"]').forEach(cb => {
-        cb.checked = (template.availableDays || []).includes(cb.value);
-    });
-
+    renderPills(dom.shiftFormDepartmentPills, departments, template.departmentIds || [], 'dept', 'abbreviation', 'active');
+    renderPills(dom.shiftFormDayPills, daysOrder.map(d => ({id: d, name: dayNames[d]})), template.availableDays || [], 'day', 'name', 'active');
+    
     dom.addShiftTemplateBtn.textContent = 'Save Changes';
     dom.cancelEditShiftTemplateBtn.style.display = 'inline-block';
 }
@@ -120,17 +148,15 @@ export function populateShiftTemplateFormForEdit(template) {
 export function resetShiftTemplateForm() {
     dom.editingShiftTemplateIdInput.value = '';
     dom.shiftTemplateNameInput.value = '';
-    dom.shiftTemplateDepartmentSelect.value = "";
     dom.shiftTemplateStartHourSelect.value = "09";
     dom.shiftTemplateStartMinuteSelect.value = "00";
     dom.shiftTemplateEndHourSelect.value = "17";
     dom.shiftTemplateEndMinuteSelect.value = "00";
 
-    document.querySelectorAll('#shift-template-days-group input[type="checkbox"]').forEach(cb => {
-        cb.checked = true;
-    });
+    renderPills(dom.shiftFormDepartmentPills, departments, [], 'dept', 'abbreviation', 'active');
+    renderPills(dom.shiftFormDayPills, daysOrder.map(d => ({id: d, name: dayNames[d]})), daysOrder, 'day', 'name', 'active');
 
-    dom.addShiftTemplateBtn.textContent = getTranslatedString('btnAddShiftTemplate');
+    dom.addShiftTemplateBtn.textContent = getTranslatedString('btnAddShift');
     dom.cancelEditShiftTemplateBtn.style.display = 'none';
 }
 
@@ -148,21 +174,19 @@ export function deleteShiftTemplate(stId) {
 
 export function handleSaveShiftTemplate() {
     const name = dom.shiftTemplateNameInput.value.trim();
-    const departmentId = dom.shiftTemplateDepartmentSelect.value;
     const start = formatTimeToHHMM(dom.shiftTemplateStartHourSelect.value, dom.shiftTemplateStartMinuteSelect.value);
     const end = formatTimeToHHMM(dom.shiftTemplateEndHourSelect.value, dom.shiftTemplateEndMinuteSelect.value);
     const editingId = dom.editingShiftTemplateIdInput.value;
 
-    const availableDays = Array.from(document.querySelectorAll('#shift-template-days-group input:checked'))
-                               .map(cb => cb.value);
+    const departmentIds = getSelectedPillIds(dom.shiftFormDepartmentPills, 'active');
+    const availableDays = getSelectedPillIds(dom.shiftFormDayPills, 'active');
 
-    if (availableDays.length === 0) {
-        alert("A shift template must be available on at least one day.");
+    if (departmentIds.length === 0) {
+        alert("A shift must belong to at least one department.");
         return;
     }
-
-    if (!departmentId) {
-        alert('Please select a department for the shift template.');
+    if (availableDays.length === 0) {
+        alert("A shift must be available on at least one day.");
         return;
     }
     if (!name || !start || !end) {
@@ -174,11 +198,13 @@ export function handleSaveShiftTemplate() {
         return;
     }
 
-    const templateData = { name, departmentId, start, end, availableDays };
+    const templateData = { name, start, end, departmentIds, availableDays };
 
     if (editingId) {
         const templateIndex = shiftTemplates.findIndex(st => st.id === editingId);
-        if (templateIndex > -1) shiftTemplates[templateIndex] = { ...shiftTemplates[templateIndex], ...templateData };
+        if (templateIndex > -1) {
+            shiftTemplates[templateIndex] = { ...shiftTemplates[templateIndex], ...templateData };
+        }
     } else {
         shiftTemplates.push({ id: generateId('shift'), ...templateData });
     }
@@ -190,58 +216,104 @@ export function handleSaveShiftTemplate() {
 export function renderShiftTemplates() {
     if (!dom.shiftTemplateContainer) return;
     dom.shiftTemplateContainer.innerHTML = '';
+    
+    resetShiftTemplateForm(); // Also initializes the form pills
 
     const selectedDeptIds = getSelectedShiftDepartmentIds();
-    const templatesToDisplay = shiftTemplates.filter(st =>
-        (selectedDeptIds === null) ? true : selectedDeptIds.includes(st.departmentId)
-    );
+    
+    let filteredTemplates = shiftTemplates;
+    if (selectedDeptIds !== null) {
+        filteredTemplates = shiftTemplates.filter(st => {
+            return (st.departmentIds || []).some(deptId => selectedDeptIds.includes(deptId));
+        });
+    }
 
-    const groupedByDept = templatesToDisplay.reduce((acc, template) => {
-        const deptId = template.departmentId || 'general';
-        if (!acc[deptId]) {
-            acc[deptId] = {
-                name: departments.find(d => d.id === deptId)?.name || getTranslatedString('optGeneral'),
-                templates: []
-            };
-        }
-        acc[deptId].templates.push(template);
+    const groupedByDept = filteredTemplates.reduce((acc, template) => {
+        (template.departmentIds || []).forEach(deptId => {
+            if (!acc[deptId]) {
+                acc[deptId] = {
+                    name: departments.find(d => d.id === deptId)?.name || 'Unassigned',
+                    templates: []
+                };
+            }
+            acc[deptId].templates.push(template);
+        });
         return acc;
     }, {});
 
-    const daysOrder = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
-    const dayNames = { mon: 'Monday', tue: 'Tuesday', wed: 'Wednesday', thu: 'Thursday', fri: 'Friday', sat: 'Saturday', sun: 'Sunday' };
-
     Object.values(groupedByDept).forEach(deptGroup => {
+        deptGroup.templates.sort((a, b) => {
+            if (a.start < b.start) return -1;
+            if (a.start > b.start) return 1;
+            if (a.end < b.end) return 1;
+            if (a.end > b.end) return -1;
+            return a.name.localeCompare(b.name);
+        });
+    });
+
+    const deptOrder = departments.map(d => d.id);
+    const sortedDeptGroups = Object.keys(groupedByDept).sort((a,b) => deptOrder.indexOf(a) - deptOrder.indexOf(b));
+
+    sortedDeptGroups.forEach(deptId => {
+        const deptGroup = groupedByDept[deptId];
         const deptWrapper = document.createElement('div');
         deptWrapper.className = 'department-group';
         deptWrapper.innerHTML = `<h3>${deptGroup.name}</h3>`;
 
-        daysOrder.forEach(day => {
-            const dayTemplates = deptGroup.templates.filter(t => (t.availableDays || daysOrder).includes(day));
+        const grid = document.createElement('div');
+        grid.className = 'template-grid';
 
-            if (dayTemplates.length > 0) {
-                const dayHeader = document.createElement('h4');
-                dayHeader.textContent = dayNames[day];
-                dayHeader.style.cssText = "margin-top: 15px; margin-bottom: 10px; color: #34495e; font-size: 1.1em;";
-                deptWrapper.appendChild(dayHeader);
+        deptGroup.templates.forEach(st => {
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'template-item';
+            
+            const duration = calculateShiftDuration(st.start, st.end).toFixed(1);
+            
+            itemDiv.innerHTML = `
+                <div class="template-info">
+                    <span class="template-time">${formatTimeForDisplay(st.start)} - ${formatTimeForDisplay(st.end)}</span>
+                    <span class="template-name-span">| ${st.name}</span>
+                    <span class="template-duration">[${duration}]</span>
+                </div>
+            `;
 
-                const grid = document.createElement('div');
-                grid.className = 'template-grid';
+            const pillsContainer = document.createElement('div');
+            pillsContainer.className = 'pills-container';
 
-                dayTemplates.forEach(st => {
-                    const itemDiv = document.createElement('div');
-                    itemDiv.className = 'template-item draggable-item';
-                    itemDiv.draggable = true;
-                    itemDiv.dataset.itemId = st.id;
-                    const duration = calculateShiftDuration(st.start, st.end).toFixed(1);
-                    itemDiv.innerHTML = `<span class="template-name-span">${st.name}: ${formatTimeForDisplay(st.start)} - ${formatTimeForDisplay(st.end)} [${duration}hrs]</span>`;
-                    itemDiv.prepend(createItemActionButtons(() => populateShiftTemplateFormForEdit(st), () => deleteShiftTemplate(st.id)));
-                    grid.appendChild(itemDiv);
+            const deptPills = document.createElement('div');
+            deptPills.className = 'department-pills-container';
+            departments.forEach(dept => {
+                const pill = document.createElement('div');
+                pill.className = 'pill dept-pill';
+                pill.textContent = dept.abbreviation;
+                pill.dataset.deptId = dept.id;
+                if ((st.departmentIds || []).includes(dept.id)) {
+                    pill.classList.add('active');
+                }
+                pill.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const currentDeptIds = st.departmentIds || [];
+                    const index = currentDeptIds.indexOf(dept.id);
+                    if (index > -1) {
+                        currentDeptIds.splice(index, 1);
+                    } else {
+                        currentDeptIds.push(dept.id);
+                    }
+                    st.departmentIds = currentDeptIds;
+                    saveShiftTemplates();
+                    renderShiftTemplates();
                 });
-                deptWrapper.appendChild(grid);
-                makeListSortable(grid, shiftTemplates, saveShiftTemplates, renderShiftTemplates);
-            }
+                deptPills.appendChild(pill);
+            });
+
+            pillsContainer.appendChild(deptPills);
+            itemDiv.appendChild(pillsContainer);
+            itemDiv.appendChild(createItemActionButtons(() => populateShiftTemplateFormForEdit(st), () => deleteShiftTemplate(st.id)));
+            
+            grid.appendChild(itemDiv);
         });
+        
+        deptWrapper.appendChild(grid);
         dom.shiftTemplateContainer.appendChild(deptWrapper);
     });
 }

@@ -1186,11 +1186,11 @@ ul li .item-actions button {
     font-size: 1.2em;
 }
 
-.template-list {
-    list-style: none;
-    padding: 0;
+.template-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
 }
-
 .template-item {
     background: #f9f9f9;
     border: 1px solid #e0e0e0;
@@ -1199,9 +1199,7 @@ ul li .item-actions button {
     justify-content: space-between;
     align-items: center;
     padding: 10px 15px;
-    margin-bottom: 8px;
-    flex-wrap: wrap;
-    gap: 10px;
+    gap: 15px;
 }
 
 .template-info {
@@ -1224,12 +1222,17 @@ ul li .item-actions button {
     color: #7f8c8d;
 }
 
+.pills-container {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
 .day-pills-container, .department-pills-container {
     display: flex;
     gap: 5px;
-    margin: 0 10px;
 }
-.day-pill, .dept-pill {
+.pill {
     min-width: 28px;
     height: 28px;
     padding: 0 5px;
@@ -1244,16 +1247,20 @@ ul li .item-actions button {
     color: #adb5bd;
     transition: background-color 0.2s, color 0.2s, transform 0.2s;
     user-select: none;
+    border: 1px solid #dee2e6;
 }
-.day-pill:hover, .dept-pill:hover {
+.pill:hover {
     transform: scale(1.1);
 }
-.day-pill.active, .dept-pill.active {
+.day-pill.active {
     background-color: #3498db;
     color: white;
+    border-color: #2980b9;
 }
 .dept-pill.active {
     background-color: #27ae60;
+    color: white;
+    border-color: #239b56;
 }
 
 

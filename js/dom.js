@@ -1,173 +1,205 @@
-// js/dom.js
+// js/ui/departments.js
+//  It no longer contains drag-and-drop logic; it just renders the list and then calls the new makeListSortable function.
 
-// General App & Navigation
-export const languageSelect = document.getElementById('language-select');
-export const tabLinks = document.querySelectorAll('.tab-link');
-export const tabContents = document.querySelectorAll('.tab-content');
-export const exitBtn = document.getElementById('exit-btn');
+import { departments, users, roles, shiftTemplates, restaurantSettings, saveDepartments, saveUsers, saveRoles, saveShiftTemplates } from '../state.js';
+import * as dom from '../dom.js';
+import { getTranslatedString } from '../i18n.js';
+import { createItemActionButtons, generateId } from '../utils.js';
+import { renderEmployees } from './employees.js';
+import { renderRoles } from './roles.js';
+import { renderWeeklySchedule } from './scheduler.js';
+import { makeListSortable } from '../features/list-dnd.js';
 
-// Department Tab
-export const departmentNameInput = document.getElementById('department-name');
-export const departmentAbbreviationInput = document.getElementById('department-abbreviation');
-export const addDepartmentBtn = document.getElementById('add-department-btn');
-export const departmentListUl = document.getElementById('department-list');
-export const editingDepartmentIdInput = document.getElementById('editing-department-id');
-export const cancelEditDepartmentBtn = document.getElementById('cancel-edit-department-btn');
+export function handleSaveDepartment() {
+    const name = dom.departmentNameInput.value.trim();
+    const abbreviation = dom.departmentAbbreviationInput.value.trim().toUpperCase();
+    const editingId = dom.editingDepartmentIdInput.value;
 
-// Roles Tab
-export const roleNameInput = document.getElementById('role-name');
-export const roleColorInput = document.getElementById('role-color');
-export const roleColorPalette = document.getElementById('role-color-palette');
-export const roleColorPreview = document.getElementById('role-color-preview');
-export const roleDepartmentSelect = document.getElementById('role-department');
-export const addRoleBtn = document.getElementById('add-role-btn');
-export const roleListUl = document.getElementById('role-list');
-export const editingRoleIdInput = document.getElementById('editing-role-id');
-export const cancelEditRoleBtn = document.getElementById('cancel-edit-role-btn');
+    if (!name || !abbreviation) {
+        alert(getTranslatedString('alertDeptNameEmpty'));
+        return;
+    }
 
-// Employees Tab & Modal
-export const employeeStatusSelect = document.getElementById('employee-status');
-export const terminationDetails = document.getElementById('termination-details');
-export const showInactiveEmployeesCheckbox = document.getElementById('show-inactive-employees');
-export const showAddEmployeeModalBtn = document.getElementById('show-add-employee-modal-btn');
-export const employeeListUl = document.getElementById('employee-list');
-export const employeeListFilter = document.getElementById('employee-list-filter');
-export const employeeFormModal = document.getElementById('employee-form-modal');
-export const employeeModalTitle = document.getElementById('employee-modal-title');
-export const editingEmployeeIdInput = document.getElementById('editing-employee-id');
-export const addEmployeeBtn = document.getElementById('add-employee-btn');
-export const cancelEditEmployeeBtn = document.getElementById('cancel-edit-employee-btn');
-export const employeeFirstNameInput = document.getElementById('employee-first-name');
-export const employeeLastNameInput = document.getElementById('employee-last-name');
-export const employeeDisplayNameInput = document.getElementById('employee-display-name');
-export const employeeDobInput = document.getElementById('employee-dob');
-export const employeePhoneCodeInput = document.getElementById('employee-phone-code');
-export const employeePhoneNumberInput = document.getElementById('employee-phone-number');
-export const employeeEmailInput = document.getElementById('employee-email');
-export const employeeAddress1Input = document.getElementById('employee-address-1');
-export const employeeAddress2Input = document.getElementById('employee-address-2');
-export const employeeCityInput = document.getElementById('employee-city');
-export const employeeDepartmentAddressInput = document.getElementById('employee-department-address');
-export const employeeCountryInput = document.getElementById('employee-country');
-export const employeeDepartmentSelect = document.getElementById('employee-department');
-export const employeeStartDateInput = document.getElementById('employee-start-date');
-export const employeeTerminationDateInput = document.getElementById('employee-termination-date');
-export const employeeTerminationReasonInput = document.getElementById('employee-termination-reason');
-export const employeeVacationBalanceInput = document.getElementById('employee-vacation-balance');
+    if (editingId) {
+        const deptIndex = departments.findIndex(d => d.id === editingId);
+        if (deptIndex > -1) {
+            departments[deptIndex].name = name;
+            departments[deptIndex].abbreviation = abbreviation;
+        }
+    } else {
+        if (departments.find(d => d.name.toLowerCase() === name.toLowerCase())) {
+            alert('Department name already exists.');
+            return;
+        }
+        departments.push({ id: generateId('dept'), name, abbreviation });
+    }
 
-// Shift Templates Tab
-export const shiftTemplateNameInput = document.getElementById('shift-template-name');
-export const shiftTemplateDepartmentSelect = document.getElementById('shift-template-department');
-export const shiftTemplateStartHourSelect = document.getElementById('shift-template-start-hour');
-export const shiftTemplateStartMinuteSelect = document.getElementById('shift-template-start-minute');
-export const shiftTemplateEndHourSelect = document.getElementById('shift-template-end-hour');
-export const shiftTemplateEndMinuteSelect = document.getElementById('shift-template-end-minute');
-export const addShiftTemplateBtn = document.getElementById('add-shift-template-btn');
-export const shiftTemplateContainer = document.getElementById('shift-template-container');
-export const editingShiftTemplateIdInput = document.getElementById('editing-shift-template-id');
-export const cancelEditShiftTemplateBtn = document.getElementById('cancel-edit-shift-template-btn');
-export const shiftTemplateListFilter = document.getElementById('shift-template-list-filter');
+    saveDepartments();
+    renderDepartments();
+    renderEmployees();
+    resetDepartmentForm();
+}
 
-// Scheduler View
-export const prevWeekBtn = document.getElementById('prev-week-btn');
-export const thisWeekBtn = document.getElementById('this-week-btn');
-export const nextWeekBtn = document.getElementById('next-week-btn');
-export const currentWeekDisplay = document.getElementById('current-week-display');
-export const weekPickerAlt = document.getElementById('week-picker-alt');
-export const scheduleGridBody = document.getElementById('schedule-grid-body');
-export const departmentFilterMultiselect = document.getElementById('department-filter-multiselect');
-export const departmentFilterButton = document.getElementById('department-filter-button');
-export const departmentFilterText = document.getElementById('department-filter-text');
-export const departmentCheckboxesContainer = document.getElementById('department-checkboxes');
-export const printScheduleBtn = document.getElementById('print-schedule-btn');
+function populateDepartmentFilter() {
+    if (!dom.departmentCheckboxesContainer) return;
 
-// Scheduler Actions (Copy/Clear Week, etc.)
-export const copyFromWeekPicker = document.getElementById('copy-from-week-picker');
-export const executeCopyWeekBtn = document.getElementById('execute-copy-week-btn');
-export const clearCurrentWeekBtn = document.getElementById('clear-current-week-btn');
-export const clearCopiedShiftBtn = document.getElementById('clear-copied-shift-btn');
-export const manageEventsBtn = document.getElementById('manage-events-btn');
+    const savedStateJSON = localStorage.getItem('schedulerDepartmentFilterState');
+    const savedState = savedStateJSON ? JSON.parse(savedStateJSON) : null;
+    const isChecked = (value, defaultChecked = true) => {
+        if (!savedState) return defaultChecked;
+        const savedItem = savedState.find(s => s.value === value);
+        return savedItem ? savedItem.checked : defaultChecked;
+    };
 
-// Assign Shift / Time Off Modal
-export const assignShiftModal = document.getElementById('assign-shift-modal');
-export const assignModalTitle = document.getElementById('assign-modal-title');
-export const assignModalEmployeeIdInput = document.getElementById('assign-modal-employee-id');
-export const assignModalDateInput = document.getElementById('assign-modal-date');
-export const assignModalPasteOptionDiv = document.getElementById('assign-modal-paste-option');
-export const copiedShiftDetailsText = document.getElementById('copied-shift-details-text');
-export const pasteCopiedShiftBtn = document.getElementById('paste-copied-shift-btn');
-export const assignNewShiftInsteadBtn = document.getElementById('assign-new-shift-instead-btn');
-export const assignTypeChoiceDiv = document.getElementById('assign-type-choice');
-export const assignTypeTemplateBtn = document.getElementById('assign-type-template-btn');
-export const assignTypeCustomBtn = document.getElementById('assign-type-custom-btn');
-export const assignTypeTimeOffBtn = document.getElementById('assign-type-timeoff-btn');
-export const assignModalDeptFilterGroup = document.getElementById('assign-modal-dept-filter-group');
-export const assignModalDepartmentFilter = document.getElementById('assign-modal-department-filter');
-export const assignModalTemplateFieldsDiv = document.getElementById('assign-modal-template-fields');
-export const assignModalShiftTemplateSelect = document.getElementById('assign-modal-shift-template');
-export const assignModalCustomFieldsDiv = document.getElementById('assign-modal-custom-fields');
-export const customShiftStartHourSelect = document.getElementById('custom-shift-start-hour');
-export const customShiftStartMinuteSelect = document.getElementById('custom-shift-start-minute');
-export const customShiftEndHourSelect = document.getElementById('custom-shift-end-hour');
-export const customShiftEndMinuteSelect = document.getElementById('custom-shift-end-minute');
-export const saveCustomAsTemplateSection = document.getElementById('save-custom-as-template-section');
-export const saveAsTemplateCheckbox = document.getElementById('save-as-template-checkbox');
-export const newTemplateFieldsDiv = document.getElementById('new-template-fields');
-export const newTemplateNameInput = document.getElementById('new-template-name');
-export const assignModalTimeOffFieldsDiv = document.getElementById('assign-modal-timeoff-fields');
-export const assignModalTimeOffReasonSelect = document.getElementById('assign-modal-timeoff-reason');
-export const assignModalRoleGroup = document.getElementById('assign-modal-role-group');
-export const assignModalRoleSelect = document.getElementById('assign-modal-role');
-export const saveAssignedShiftBtn = document.getElementById('save-assigned-shift-btn');
+    dom.departmentCheckboxesContainer.innerHTML = '';
 
-// Copy Conflict Modal
-export const copyConflictModal = document.getElementById('copy-conflict-modal');
-export const copyConflictText = document.getElementById('copy-conflict-text');
-export const conflictOverwriteBtn = document.getElementById('conflict-overwrite-btn');
-export const conflictMergeBtn = document.getElementById('conflict-merge-btn');
-export const conflictIgnoreBtn = document.getElementById('conflict-ignore-btn');
+    const allLabel = document.createElement('label');
+    allLabel.innerHTML = `<input type="checkbox" value="all" ${isChecked('all') ? 'checked' : ''}> <strong data-lang-key="optAllDepts">${getTranslatedString('optAllDepts')}</strong>`;
+    dom.departmentCheckboxesContainer.appendChild(allLabel);
 
-// Copy Employee Week Modal
-export const copyEmployeeWeekModal = document.getElementById('copy-employee-week-modal');
-export const copyEmployeeModalTitle = document.getElementById('copy-employee-modal-title');
-export const copyEmployeeFromDateInput = document.getElementById('copy-employee-from-date');
-export const copyEmployeeModalUserIdInput = document.getElementById('copy-employee-modal-user-id');
-export const executeCopyEmployeeBtn = document.getElementById('execute-copy-employee-btn');
+    departments.forEach(dept => {
+        const deptLabel = document.createElement('label');
+        deptLabel.innerHTML = `<input type="checkbox" value="${dept.id}" ${isChecked(dept.id) ? 'checked' : ''}> ${dept.name}`;
+        dom.departmentCheckboxesContainer.appendChild(deptLabel);
+    });
 
-// Events Modal
-export const eventsModal = document.getElementById('events-modal');
-export const editingEventIdInput = document.getElementById('editing-event-id');
-export const eventNameInput = document.getElementById('event-name');
-export const eventColorInput = document.getElementById('event-color');
-export const eventColorPalette = document.getElementById('event-color-palette');
-export const eventRecurrenceRuleSelect = document.getElementById('event-recurrence-rule');
-export const eventRecurrenceOptionsSection = document.getElementById('event-recurrence-options');
-export const eventStartDateInput = document.getElementById('event-start-date');
-export const eventRecurrenceCountInput = document.getElementById('event-recurrence-count');
-export const eventSpecificDatesSection = document.getElementById('event-specific-dates-section');
-export const eventSpecificDateInput = document.getElementById('event-specific-date');
-export const addEventSpecificDateBtn = document.getElementById('add-event-specific-date-btn');
-export const eventSpecificDatesListUl = document.getElementById('event-specific-dates-list');
-export const addEventBtn = document.getElementById('add-event-btn');
-export const cancelEditEventBtn = document.getElementById('cancel-edit-event-btn');
-export const eventListUl = document.getElementById('event-list-ul');
+    dom.departmentCheckboxesContainer.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+        checkbox.addEventListener('change', handleDepartmentFilterChange);
+    });
+}
 
-// Clear Week Confirmation Modal
-export const clearWeekConfirmModal = document.getElementById('clear-week-confirm-modal');
-export const clearWeekConfirmText = document.getElementById('clear-week-confirm-text');
-export const clearShiftsOnlyBtn = document.getElementById('clear-shifts-only-btn');
-export const clearAllAssignmentsBtn = document.getElementById('clear-all-assignments-btn');
-export const clearCancelBtn = document.getElementById('clear-cancel-btn');
+function handleDepartmentFilterChange(e = null) {
+    const checkboxes = dom.departmentCheckboxesContainer.querySelectorAll('input[type="checkbox"]');
+    if (checkboxes.length === 0) return;
+    
+    const allDeptsCheckbox = checkboxes[0];
 
-// Settings Tab
-export const restaurantHoursGrid = document.getElementById('restaurant-hours-grid');
-export const minCoverageGridContainer = document.getElementById('min-coverage-grid-container');
-export const minCoverageDepartmentSelect = document.getElementById('min-coverage-department-select');
-export const minMealCoverageDurationSelect = document.getElementById('min-meal-coverage-duration');
-export const saveRestaurantSettingsBtn = document.getElementById('save-restaurant-settings-btn');
-export const backupAllDataBtn = document.getElementById('backup-all-data-btn');
-export const backupCategorySelect = document.getElementById('backup-category-select');
-export const backupCategoryBtn = document.getElementById('backup-category-btn');
-export const restoreDataInput = document.getElementById('restore-data-input');
-export const restoreFileNameDisplay = document.getElementById('restore-file-name');
-export const clearAllDataBtn = document.getElementById('clear-all-data-btn');
+    if (e && e.target.value === 'all') {
+        checkboxes.forEach(cb => cb.checked = allDeptsCheckbox.checked);
+    } else if (checkboxes.length > 1) {
+        const allOthersChecked = Array.from(checkboxes).slice(1).every(cb => cb.checked);
+        allDeptsCheckbox.checked = allOthersChecked;
+    }
+
+    if (e) {
+        const checkboxState = Array.from(checkboxes).map(cb => ({ value: cb.value, checked: cb.checked }));
+        localStorage.setItem('schedulerDepartmentFilterState', JSON.stringify(checkboxState));
+    }
+
+    let selectedDepartmentIds = Array.from(checkboxes).filter(cb => cb.checked && cb.value !== 'all').map(cb => cb.value);
+
+    if (allDeptsCheckbox.checked) {
+        selectedDepartmentIds = ['all'];
+        dom.departmentFilterText.textContent = getTranslatedString('optAllDepts');
+    } else if (selectedDepartmentIds.length === 0) {
+        dom.departmentFilterText.textContent = "None selected";
+        selectedDepartmentIds = ['none'];
+    } else if (selectedDepartmentIds.length === 1) {
+        const dept = departments.find(d => d.id === selectedDepartmentIds[0]);
+        dom.departmentFilterText.textContent = dept ? dept.name : "1 selected";
+    } else {
+        dom.departmentFilterText.textContent = `${selectedDepartmentIds.length} departments`;
+    }
+
+    window.selectedDepartmentIds = selectedDepartmentIds;
+    renderWeeklySchedule();
+}
+
+export function populateDepartmentFormForEdit(department) {
+    dom.editingDepartmentIdInput.value = department.id;
+    dom.departmentNameInput.value = department.name;
+    dom.departmentAbbreviationInput.value = department.abbreviation || '';
+    dom.addDepartmentBtn.textContent = 'Save Changes';
+    dom.cancelEditDepartmentBtn.style.display = 'inline-block';
+}
+
+export function resetDepartmentForm() {
+    dom.editingDepartmentIdInput.value = '';
+    dom.departmentNameInput.value = '';
+    dom.departmentAbbreviationInput.value = '';
+    dom.addDepartmentBtn.textContent = getTranslatedString('btnAddDept');
+    dom.cancelEditDepartmentBtn.style.display = 'none';
+}
+
+export async function deleteDepartment(deptId) {
+    if (!confirm(getTranslatedString('confirmDeleteDept'))) return;
+
+    const updatedDepts = departments.filter(d => d.id !== deptId);
+    departments.length = 0;
+    Array.prototype.push.apply(departments, updatedDepts);
+
+    users.forEach(user => { if (user.departmentId === deptId) user.departmentId = null; });
+    roles.forEach(role => { if (role.departmentId === deptId) role.departmentId = null; });
+    shiftTemplates.forEach(st => { if (st.departmentId === deptId) st.departmentId = null; });
+
+    if (restaurantSettings.minCoverage && restaurantSettings.minCoverage[deptId]) {
+        delete restaurantSettings.minCoverage[deptId];
+    }
+
+    saveUsers();
+    saveRoles();
+    saveShiftTemplates();
+    saveDepartments();
+
+    renderDepartments();
+    renderEmployees();
+    renderRoles();
+    
+    const { renderShiftTemplates } = await import('./shifts.js');
+    renderShiftTemplates();
+
+    if (dom.editingDepartmentIdInput.value === deptId) {
+        resetDepartmentForm();
+    }
+}
+
+export function renderDepartments() {
+    if (!dom.departmentListUl) return;
+    const savedEmployeeFilter = localStorage.getItem('employeeListFilterValue');
+    dom.departmentListUl.innerHTML = '';
+    
+    const selectDeptHTML = `<option value="" disabled data-lang-key="optSelectDept">${getTranslatedString('optSelectDept')}</option>`;
+    const allDeptsOptionHTML = `<option value="all" data-lang-key="optAllDepts">${getTranslatedString('optAllDepts')}</option>`;
+
+    if (dom.roleDepartmentSelect) dom.roleDepartmentSelect.innerHTML = selectDeptHTML;
+    if (dom.shiftTemplateDepartmentSelect) dom.shiftTemplateDepartmentSelect.innerHTML = selectDeptHTML;
+    if (dom.employeeDepartmentSelect) dom.employeeDepartmentSelect.innerHTML = `<option value="">-- ${getTranslatedString('optNoDept')} --</option>`;
+    
+    const validDepartments = departments.filter(dept => dept && dept.id && dept.name);
+    validDepartments.forEach(dept => {
+        const li = document.createElement('li');
+        li.className = 'draggable-item';
+        li.draggable = true;
+        li.dataset.itemId = dept.id;
+
+        const nameSpan = document.createElement('span');
+        nameSpan.textContent = `${dept.name} [${dept.abbreviation || 'N/A'}]`;
+        li.appendChild(nameSpan);
+
+        li.appendChild(createItemActionButtons(() => populateDepartmentFormForEdit(dept), () => deleteDepartment(dept.id)));
+        dom.departmentListUl.appendChild(li);
+
+        const option = document.createElement('option');
+        option.value = dept.id;
+        option.textContent = dept.name;
+
+        if (dom.employeeDepartmentSelect) dom.employeeDepartmentSelect.appendChild(option.cloneNode(true));
+        if (dom.shiftTemplateDepartmentSelect) dom.shiftTemplateDepartmentSelect.appendChild(option.cloneNode(true));
+        if (dom.roleDepartmentSelect) dom.roleDepartmentSelect.appendChild(option.cloneNode(true));
+    });
+
+    makeListSortable(dom.departmentListUl, departments, saveDepartments, renderDepartments);
+
+    if (savedEmployeeFilter && dom.employeeListFilter.querySelector(`option[value="${savedEmployeeFilter}"]`)) {
+        dom.employeeListFilter.value = savedEmployeeFilter;
+    } else if (dom.employeeListFilter) {
+        dom.employeeListFilter.value = 'all';
+    }
+
+    populateDepartmentFilter();
+}
+
+export function initializeSchedulerFilter() {
+    if (!dom.departmentCheckboxesContainer) return;
+    handleDepartmentFilterChange();
+}

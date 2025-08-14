@@ -10,15 +10,14 @@ import {
     scheduleAssignments,
     restaurantSettings
 } from '../state.js';
-import { renderDepartments } from '../ui/departments.js';
-import { renderRoles } from '../ui/roles.js';
-import { renderEmployees } from '../ui/employees.js';
-import { renderShiftTemplates } from '../ui/shifts.js';
+import { renderDepartments, populateDepartmentFilter } from '../ui/departments.js';
+import { renderRoles, populateRoleDeptCheckboxes } from '../ui/roles.js';
+import { renderEmployees, populateEmployeeDeptCheckboxes } from '../ui/employees.js';
+import { renderShiftTemplates, populateShiftDeptCheckboxes } from '../ui/shifts.js';
 import { renderWeeklySchedule } from '../ui/scheduler.js';
 import { initSettingsTab } from '../ui/settings.js';
 
 // --- Module-level variable ---
-// By declaring this here, it's accessible to all functions in this file. THIS IS THE FIX.
 const originalSetItem = window.localStorage.setItem.bind(window.localStorage);
 
 
@@ -88,22 +87,17 @@ export function initializeSync() {
 export function initializeDataListeners() {
     if (!window.db) return;
 
-    const renderAll = () => {
-        renderDepartments();
-        renderRoles();
-        renderShiftTemplates();
-        renderEmployees();
-        initSettingsTab();
-        renderWeeklySchedule();
-    };
-
     window.db.collection('departments').onSnapshot(snapshot => {
         console.log("Firestore: Departments updated.");
         const updatedData = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
         departments.length = 0;
         Array.prototype.push.apply(departments, updatedData);
         originalSetItem('departments', JSON.stringify(departments));
-        renderAll();
+        renderDepartments();
+        populateDepartmentFilter(); // For scheduler filter
+        populateRoleDeptCheckboxes();
+        populateEmployeeDeptCheckboxes();
+        populateShiftDeptCheckboxes();
     });
 
     window.db.collection('roles').onSnapshot(snapshot => {
@@ -112,7 +106,8 @@ export function initializeDataListeners() {
         roles.length = 0;
         Array.prototype.push.apply(roles, updatedData);
         originalSetItem('roles', JSON.stringify(roles));
-        renderAll();
+        renderRoles();
+        renderWeeklySchedule();
     });
 
     window.db.collection('users').onSnapshot(snapshot => {
@@ -121,7 +116,8 @@ export function initializeDataListeners() {
         users.length = 0;
         Array.prototype.push.apply(users, updatedData);
         originalSetItem('users', JSON.stringify(users));
-        renderAll();
+        renderEmployees();
+        renderWeeklySchedule();
     });
 
     window.db.collection('shiftTemplates').onSnapshot(snapshot => {
@@ -130,7 +126,7 @@ export function initializeDataListeners() {
         shiftTemplates.length = 0;
         Array.prototype.push.apply(shiftTemplates, updatedData);
         originalSetItem('shiftTemplates', JSON.stringify(shiftTemplates));
-        renderAll();
+        renderShiftTemplates();
     });
 
     window.db.collection('events').onSnapshot(snapshot => {

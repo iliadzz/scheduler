@@ -5,7 +5,6 @@
 
 import { scheduleAssignments, saveScheduleAssignments } from '../state.js';
 import { generateId } from '../utils.js';
-import { renderWeeklySchedule } from '../ui/scheduler.js';
 
 const undoBtn = document.getElementById('undo-btn');
 const redoBtn = document.getElementById('redo-btn');
@@ -31,7 +30,6 @@ export function ModifyAssignmentCommand(userId, dateStr, newAssignment, oldAssig
             dayData.shifts.push(this.newAssignment);
         }
         saveScheduleAssignments();
-        renderWeeklySchedule();
     };
 
     this.undo = function() {
@@ -46,7 +44,6 @@ export function ModifyAssignmentCommand(userId, dateStr, newAssignment, oldAssig
             }
         }
         saveScheduleAssignments();
-        renderWeeklySchedule();
     };
 }
 
@@ -66,7 +63,6 @@ export function DeleteAssignmentCommand(userId, dateStr, assignmentId) {
             }
         }
         saveScheduleAssignments();
-        renderWeeklySchedule();
     };
 
     this.undo = function() {
@@ -75,7 +71,6 @@ export function DeleteAssignmentCommand(userId, dateStr, assignmentId) {
         scheduleAssignments[this.assignmentKey] = dayData;
         dayData.shifts.push(this.deletedAssignment);
         saveScheduleAssignments();
-        renderWeeklySchedule();
     };
 }
 
@@ -110,7 +105,6 @@ export function DragDropCommand(dragDetails) {
             if (index > -1) sourceDay.shifts.splice(index, 1);
         }
         saveScheduleAssignments();
-        renderWeeklySchedule();
     };
 
     this.undo = function() {
@@ -124,7 +118,6 @@ export function DragDropCommand(dragDetails) {
             sourceDay.shifts.push(originalAssignment);
         }
         saveScheduleAssignments();
-        renderWeeklySchedule();
     };
 }
 
