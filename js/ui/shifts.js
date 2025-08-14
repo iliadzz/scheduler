@@ -8,37 +8,6 @@ import { makeListSortable } from '../features/list-dnd.js';
 
 const SHIFTS_FILTER_KEY = 'shiftsDepartmentFilterState';
 
-// --- Data Migration ---
-let migrationNeeded = shiftTemplates.some(st => st.departmentId && !st.departmentIds);
-if (migrationNeeded) {
-    shiftTemplates.forEach(st => {
-        if (st.departmentId && !st.departmentIds) {
-            st.departmentIds = [st.departmentId];
-            delete st.departmentId;
-        } else if (!st.departmentIds) {
-            st.departmentIds = [];
-        }
-    });
-    saveShiftTemplates();
-    console.log("Shift templates data migrated to use departmentIds array.");
-}
-
-function populateFormDepartmentPills() {
-    const container = document.getElementById('shift-form-department-pills');
-    if (!container) return;
-    container.innerHTML = '';
-    departments.forEach(dept => {
-        const pill = document.createElement('span');
-        pill.className = 'dept-pill';
-        pill.dataset.deptId = dept.id;
-        pill.textContent = dept.abbreviation;
-        pill.addEventListener('click', () => {
-            pill.classList.toggle('active');
-        });
-        container.appendChild(pill);
-    });
-}
-
 export function ensureShiftDeptMultiselect() {
   if (document.getElementById('shift-dept-multiselect')) return;
   const wrapper = document.createElement('div');
@@ -132,35 +101,37 @@ function updateShiftDeptLabel() {
 export function populateShiftTemplateFormForEdit(template) {
     dom.editingShiftTemplateIdInput.value = template.id;
     dom.shiftTemplateNameInput.value = template.name;
+    dom.shiftTemplateDepartmentSelect.value = template.departmentId || "";
     const [startH, startM] = template.start.split(':');
     const [endH, endM] = template.end.split(':');
     dom.shiftTemplateStartHourSelect.value = startH;
     dom.shiftTemplateStartMinuteSelect.value = startM;
     dom.shiftTemplateEndHourSelect.value = endH;
     dom.shiftTemplateEndMinuteSelect.value = endM;
+
+    document.querySelectorAll('#shift-template-days-group input[type="checkbox"]').forEach(cb => {
+        cb.checked = (template.availableDays || []).includes(cb.value);
+    });
+
     dom.addShiftTemplateBtn.textContent = 'Save Changes';
     dom.cancelEditShiftTemplateBtn.style.display = 'inline-block';
-
-    const formPills = document.querySelectorAll('#shift-form-department-pills .dept-pill');
-    formPills.forEach(pill => {
-        pill.classList.toggle('active', (template.departmentIds || []).includes(pill.dataset.deptId));
-    });
 }
 
 export function resetShiftTemplateForm() {
     dom.editingShiftTemplateIdInput.value = '';
     dom.shiftTemplateNameInput.value = '';
+    dom.shiftTemplateDepartmentSelect.value = "";
     dom.shiftTemplateStartHourSelect.value = "09";
     dom.shiftTemplateStartMinuteSelect.value = "00";
     dom.shiftTemplateEndHourSelect.value = "17";
     dom.shiftTemplateEndMinuteSelect.value = "00";
-    dom.addShiftTemplateBtn.textContent = 'Add Shift';
-    dom.cancelEditShiftTemplateBtn.style.display = 'none';
 
-    const formPills = document.querySelectorAll('#shift-form-department-pills .dept-pill');
-    formPills.forEach((pill, index) => {
-        pill.classList.toggle('active', index === 0);
+    document.querySelectorAll('#shift-template-days-group input[type="checkbox"]').forEach(cb => {
+        cb.checked = true;
     });
+
+    dom.addShiftTemplateBtn.textContent = getTranslatedString('btnAddShiftTemplate');
+    dom.cancelEditShiftTemplateBtn.style.display = 'none';
 }
 
 export function deleteShiftTemplate(stId) {
@@ -177,15 +148,21 @@ export function deleteShiftTemplate(stId) {
 
 export function handleSaveShiftTemplate() {
     const name = dom.shiftTemplateNameInput.value.trim();
+    const departmentId = dom.shiftTemplateDepartmentSelect.value;
     const start = formatTimeToHHMM(dom.shiftTemplateStartHourSelect.value, dom.shiftTemplateStartMinuteSelect.value);
     const end = formatTimeToHHMM(dom.shiftTemplateEndHourSelect.value, dom.shiftTemplateEndMinuteSelect.value);
     const editingId = dom.editingShiftTemplateIdInput.value;
 
-    const selectedDeptIds = Array.from(document.querySelectorAll('#shift-form-department-pills .dept-pill.active'))
-                                 .map(pill => pill.dataset.deptId);
+    const availableDays = Array.from(document.querySelectorAll('#shift-template-days-group input:checked'))
+                               .map(cb => cb.value);
 
-    if (selectedDeptIds.length === 0) {
-        alert('A shift must belong to at least one department.');
+    if (availableDays.length === 0) {
+        alert("A shift template must be available on at least one day.");
+        return;
+    }
+
+    if (!departmentId) {
+        alert('Please select a department for the shift template.');
         return;
     }
     if (!name || !start || !end) {
@@ -197,26 +174,11 @@ export function handleSaveShiftTemplate() {
         return;
     }
 
-    const templateData = { 
-        name, 
-        start, 
-        end,
-        departmentIds: selectedDeptIds,
-        availableDays: ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']
-    };
+    const templateData = { name, departmentId, start, end, availableDays };
 
     if (editingId) {
         const templateIndex = shiftTemplates.findIndex(st => st.id === editingId);
-        if (templateIndex > -1) {
-            const existingTemplate = shiftTemplates[templateIndex];
-            shiftTemplates[templateIndex] = { 
-                ...existingTemplate, 
-                name: templateData.name,
-                start: templateData.start,
-                end: templateData.end,
-                departmentIds: templateData.departmentIds
-            };
-        }
+        if (templateIndex > -1) shiftTemplates[templateIndex] = { ...shiftTemplates[templateIndex], ...templateData };
     } else {
         shiftTemplates.push({ id: generateId('shift'), ...templateData });
     }
@@ -228,118 +190,58 @@ export function handleSaveShiftTemplate() {
 export function renderShiftTemplates() {
     if (!dom.shiftTemplateContainer) return;
     dom.shiftTemplateContainer.innerHTML = '';
-    populateFormDepartmentPills();
-    resetShiftTemplateForm();
 
-    const selectedDeptIdsInFilter = getSelectedShiftDepartmentIds();
-    const departmentsToRender = selectedDeptIdsInFilter === null 
-        ? departments 
-        : departments.filter(d => selectedDeptIdsInFilter.includes(d.id));
+    const selectedDeptIds = getSelectedShiftDepartmentIds();
+    const templatesToDisplay = shiftTemplates.filter(st =>
+        (selectedDeptIds === null) ? true : selectedDeptIds.includes(st.departmentId)
+    );
 
-    departmentsToRender.forEach(dept => {
-        let templatesForThisDept = shiftTemplates.filter(st => (st.departmentIds || []).includes(dept.id));
+    const groupedByDept = templatesToDisplay.reduce((acc, template) => {
+        const deptId = template.departmentId || 'general';
+        if (!acc[deptId]) {
+            acc[deptId] = {
+                name: departments.find(d => d.id === deptId)?.name || getTranslatedString('optGeneral'),
+                templates: []
+            };
+        }
+        acc[deptId].templates.push(template);
+        return acc;
+    }, {});
 
-        if (templatesForThisDept.length === 0) return;
+    const daysOrder = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+    const dayNames = { mon: 'Monday', tue: 'Tuesday', wed: 'Wednesday', thu: 'Thursday', fri: 'Friday', sat: 'Saturday', sun: 'Sunday' };
 
-        templatesForThisDept.sort((a, b) => {
-            if (a.start < b.start) return -1;
-            if (a.start > b.start) return 1;
-            if (a.end < b.end) return -1;
-            if (a.end > b.end) return 1;
-            return 0;
-        });
+    Object.values(groupedByDept).forEach(deptGroup => {
+        const deptWrapper = document.createElement('div');
+        deptWrapper.className = 'department-group';
+        deptWrapper.innerHTML = `<h3>${deptGroup.name}</h3>`;
 
-        const groupWrapper = document.createElement('div');
-        groupWrapper.className = 'department-group';
-        groupWrapper.innerHTML = `<h3>${dept.name}</h3>`;
-        
-        const list = document.createElement('ul');
-        list.className = 'template-list';
+        daysOrder.forEach(day => {
+            const dayTemplates = deptGroup.templates.filter(t => (t.availableDays || daysOrder).includes(day));
 
-        templatesForThisDept.forEach(st => {
-            const itemLi = document.createElement('li');
-            itemLi.className = 'template-item';
-            itemLi.dataset.itemId = st.id;
-            const duration = calculateShiftDuration(st.start, st.end).toFixed(1);
-            
-            const contentDiv = document.createElement('div');
-            contentDiv.className = 'template-info';
-            contentDiv.innerHTML = `
-                <span class="template-time">${formatTimeForDisplay(st.start)} - ${formatTimeForDisplay(st.end)}</span>
-                <span class="template-name-span">${st.name}</span>
-                <span class="template-duration">[${duration}]</span>
-            `;
+            if (dayTemplates.length > 0) {
+                const dayHeader = document.createElement('h4');
+                dayHeader.textContent = dayNames[day];
+                dayHeader.style.cssText = "margin-top: 15px; margin-bottom: 10px; color: #34495e; font-size: 1.1em;";
+                deptWrapper.appendChild(dayHeader);
 
-            const deptPillsContainer = document.createElement('div');
-            deptPillsContainer.className = 'department-pills-container';
-            departments.forEach(d => {
-                const pill = document.createElement('span');
-                pill.className = 'dept-pill';
-                pill.dataset.deptId = d.id;
-                pill.textContent = d.abbreviation;
-                if ((st.departmentIds || []).includes(d.id)) {
-                    pill.classList.add('active');
-                }
-                pill.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    const template = shiftTemplates.find(t => t.id === st.id);
-                    if (!template) return;
-                    if (!template.departmentIds) template.departmentIds = [];
-                    
-                    const deptId = e.target.dataset.deptId;
-                    const index = template.departmentIds.indexOf(deptId);
-                    if (index > -1) {
-                        template.departmentIds.splice(index, 1);
-                    } else {
-                        template.departmentIds.push(deptId);
-                    }
-                    saveShiftTemplates();
-                    renderShiftTemplates();
+                const grid = document.createElement('div');
+                grid.className = 'template-grid';
+
+                dayTemplates.forEach(st => {
+                    const itemDiv = document.createElement('div');
+                    itemDiv.className = 'template-item draggable-item';
+                    itemDiv.draggable = true;
+                    itemDiv.dataset.itemId = st.id;
+                    const duration = calculateShiftDuration(st.start, st.end).toFixed(1);
+                    itemDiv.innerHTML = `<span class="template-name-span">${st.name}: ${formatTimeForDisplay(st.start)} - ${formatTimeForDisplay(st.end)} [${duration}hrs]</span>`;
+                    itemDiv.prepend(createItemActionButtons(() => populateShiftTemplateFormForEdit(st), () => deleteShiftTemplate(st.id)));
+                    grid.appendChild(itemDiv);
                 });
-                deptPillsContainer.appendChild(pill);
-            });
-
-            const daysOrder = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
-            const dayLabels = { mon: 'M', tue: 'T', wed: 'W', thu: 'T', fri: 'F', sat: 'S', sun: 'S' };
-            const dayPillsContainer = document.createElement('div');
-            dayPillsContainer.className = 'day-pills-container';
-            daysOrder.forEach(day => {
-                const pill = document.createElement('span');
-                pill.className = 'day-pill';
-                pill.dataset.day = day;
-                pill.textContent = dayLabels[day];
-                if ((st.availableDays || []).includes(day)) {
-                    pill.classList.add('active');
-                }
-                pill.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    const template = shiftTemplates.find(t => t.id === st.id);
-                    if (!template) return;
-                    if (!template.availableDays) template.availableDays = [...daysOrder];
-                    
-                    const dayValue = e.target.dataset.day;
-                    const index = template.availableDays.indexOf(dayValue);
-                    if (index > -1) {
-                        template.availableDays.splice(index, 1);
-                    } else {
-                        template.availableDays.push(dayValue);
-                    }
-                    saveShiftTemplates();
-                    renderShiftTemplates();
-                });
-                dayPillsContainer.appendChild(pill);
-            });
-            
-            const actions = createItemActionButtons(() => populateShiftTemplateFormForEdit(st), () => deleteShiftTemplate(st.id));
-            
-            itemLi.appendChild(contentDiv);
-            itemLi.appendChild(deptPillsContainer);
-            itemLi.appendChild(dayPillsContainer);
-            itemLi.appendChild(actions);
-            list.appendChild(itemLi);
+                deptWrapper.appendChild(grid);
+                makeListSortable(grid, shiftTemplates, saveShiftTemplates, renderShiftTemplates);
+            }
         });
-        
-        groupWrapper.appendChild(list);
-        dom.shiftTemplateContainer.appendChild(groupWrapper);
+        dom.shiftTemplateContainer.appendChild(deptWrapper);
     });
 }

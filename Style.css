@@ -868,28 +868,28 @@ ul li .item-actions button {
 
 
 /* Department Dragging Styles */
-#departments-tab ul li.draggable-department-item {
+#departments-tab ul li.draggable-item {
     cursor: move;
 }
 
-#departments-tab ul li.department-dragging {
+#departments-tab ul li.dragging-item {
     opacity: 0.5;
     background-color: #d4e6f1;
 }
 
-#departments-tab ul li.department-drag-over {
+#departments-tab ul li.drag-over-item {
     border-top: 3px dashed #3498db;
 }
 
 /* Role Dragging Styles */
-#roles-tab ul li.draggable-role-item {
+#roles-tab ul li.draggable-item {
     cursor: move;
 }
-#roles-tab ul li.role-dragging {
+#roles-tab ul li.dragging-item {
     opacity: 0.5;
     background-color: #d4e6f1;
 }
-#roles-tab ul li.role-drag-over {
+#roles-tab ul li.drag-over-item {
     border-top: 3px dashed #3498db;
 }
 
@@ -1118,7 +1118,6 @@ ul li .item-actions button {
     font-size: 0.95em;
 }
 
-/* --- THIS IS THE FIX --- */
 .hours-grid, .min-coverage-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
